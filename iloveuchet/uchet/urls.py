@@ -15,5 +15,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('bid/<int:bid_id>/delete/', confirm_delete_bid, name='confirm_delete_bid'),
     path('bid/<int:bid_id>/delete/done/', delete_bid, name='delete_bid'),
-    path('edit_bid/<int:bid_id>', edit_bid, name='edit_bid')
+    path('edit_bid/<int:bid_id>', edit_bid, name='edit_bid'),
+    path('bid/<int:bid_id>/edit-resolution/', edit_resolution, name='edit_resolution')
 ]

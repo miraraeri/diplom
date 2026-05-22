@@ -7,7 +7,7 @@
             <h1>Изменить заявку №{{bid.id}}</h1>
             {{ form.problem_text }}
             <button type="submit">Сохранить изменения</button>
-            <a href="{% url 'show_bid' bid.id %}">Отмена</a>
+            <a href="{% url 'show_bid' bid.id %}" >Отмена</a>
         </form>
     </div>
 {% endblock %}

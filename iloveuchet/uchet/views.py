@@ -132,6 +132,22 @@ def show_bid(request, bid_id):
 
 
 @login_required
+@role_required(['Администратор', 'Системный администратор'])
+def edit_resolution(request, bid_id):
+    bid = get_object_or_404(Bids, pk=bid_id)
+
+    if request.method == 'POST':
+        form = ResolutionForm(request.POST, instance=bid)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Решение сохранено')
+            return redirect('show_bid', bid_id=bid.id)
+    else:
+        form = ResolutionForm(instance=bid)
+    return render(request, 'uchet/edit_resolution.html', {'form': form, 'bid': bid})
+
+
+@login_required
 def confirm_delete_bid(request, bid_id):
     bid = get_object_or_404(Bids, pk=bid_id)
     user = request.user

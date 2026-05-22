@@ -48,3 +48,12 @@ class AuthForm(forms.Form):
         required=True,
         widget=forms.PasswordInput(attrs={'placeholder': 'Введите пароль'})
     )
+
+
+class ResolutionForm(forms.ModelForm):
+    class Meta:
+        model = Bids
+        fields = ['resolution']
+        widgets = {
+            'resolution': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Краткое описание решения...'}),
+        }

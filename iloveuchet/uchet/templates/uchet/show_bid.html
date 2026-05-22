@@ -27,6 +27,12 @@
         {% else %}
             <button type="submit" name="status_btn">{{btn_name}}</button>
         {% endif %}
+         <a href="{% url 'edit_resolution' bid.id %}" class="btn">Добавить решение проблемы</a>
+    {% endif %}
+    {% if bid.resolution and is_sysadmin %}
+        <div class="element" style="margin-top: 15px;">
+            <p><strong>Решение:</strong> {{ bid.resolution }}</p>
+        </div>
     {% endif %}
 </form>
 {% endblock %}
