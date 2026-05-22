@@ -110,6 +110,8 @@ class Bids(models.Model):
     ]
     status = models.CharField(max_length=255, choices=STATUSES, verbose_name='Статус')
 
+    resolution = models.TextField(blank=True, null=True, verbose_name='Решение проблемы')
+
     def __str__(self):
         return f'№{self.pk}'
 

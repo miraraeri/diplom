@@ -13,9 +13,9 @@
         <div class="element">
                 <p>{{c.type.name}} {{c.model}}</p>
             {% for cat in c.type.categories.all %}
-                <p>{{cat.name}}</p>
+            <p><strong>Входит в устройства: </strong>{{cat.name}}</p>
             {% endfor %}
-                <p>{{c.counts}}</p>
+            <p><strong>Количество на складе:</strong> {{c.counts}}</p>
             <form method="post" action="{% url 'remove_from_storage' c.id%}">
                 {% csrf_token %}
                  <input type="number" name="quantity" min="0" placeholder="Кол-во">
@@ -28,4 +28,17 @@
         </div>
         {% endfor %}
     </div>
+     {% if bids.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if bids.has_previous %}
+                <a href="?page={{ bids.previous_page_number }}&{{ base_params }}" class="btn">← Предыдущая</a>
+            {% endif %}
+
+            <span class="current-page">Страница {{ bids.number }} из {{ bids.paginator.num_pages }}</span>
+
+            {% if bids.has_next %}
+                <a href="?page={{ bids.next_page_number }}&{{ base_params }}" class="btn">Следующая →</a>
+            {% endif %}
+        </div>
+        {% endif %}
 {% endblock %}

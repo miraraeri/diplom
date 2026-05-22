@@ -374,6 +374,58 @@ form[action*="delete_bid"] a:hover {
 }
 
 /* =============================================
+   Футер (подвал)
+============================================= */
+footer {
+    background-color: #ffd60a;
+    text-align: left;
+    padding: 15px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: auto;        /* прижимает футер к низу */
+    font-size: 0.9rem;
+    border-top: 1px solid #ffc300;
+}
+
+footer p {
+    margin: 0;
+    color: #001d3d;
+}
+
+footer a {
+    color: #001d3d;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+/* =============================================
+   Пагинация (постраничная навигация)
+============================================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.pagination .btn {
+    background-color: #ffd60a;
+    border: 1px solid #ffc300;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+.pagination .current-page {
+    background-color: #ffc300;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+/* =============================================
    Адаптивность для мобильных устройств
 ============================================= */
 @media (max-width: 650px) {
@@ -405,5 +457,9 @@ form[action*="delete_bid"] a:hover {
         position: static;
         display: inline-block;
         margin-top: 10px;
+    }
+    footer {
+        padding: 10px;
+        font-size: 0.8rem;
     }
 }

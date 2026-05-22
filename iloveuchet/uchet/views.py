@@ -1,13 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
-from django.db.models.functions import Lower
 from .forms import *
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .utils import *
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -32,7 +31,8 @@ def auth(request):
     content = {
         'title': 'Авторизация',
         'form': form,
-        'hide_login_button': True
+        'hide_login_button': True,
+        'hide_footer': True
     }
     return render(request, 'uchet/auth.html', context=content)
 
@@ -63,11 +63,21 @@ def all_bids(request):
                 Q(employee__middlename__icontains=search)
             )
 
+    paginator = Paginator(bids, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    get_params = request.GET.copy()
+    if 'page' in get_params:
+        del get_params['page']
+    base_params = get_params.urlencode()
+
     bids_content = {
         'title': 'Все заявки',
         'heading': 'Все заявки',
-        'bids': bids,
+        'bids': page_obj,
         'form': form,
+        'base_params': base_params,
         'is_admin': user_role == 'Администратор',
         'is_sysadmin': user_role == 'Системный администратор',
         'is_user': user_role == 'Пользователь',
@@ -226,10 +236,20 @@ def all_components(request):
                 type__categories=hardware
             )
 
+    paginator = Paginator(components, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    get_params = request.GET.copy()
+    if 'page' in get_params:
+        del get_params['page']
+    base_params = get_params.urlencode()
+
     components_content = {
         'title': 'Все комплектующие',
         'heading': 'Все комплектующие',
-        'components': components,
+        'components': page_obj,
+        'base_params': base_params,
         'form': form
     }
     return render(request, 'uchet/all_components.html', context=components_content)
