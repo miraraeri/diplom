@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block extrastyle %}
+    <link rel="stylesheet" href="{% static 'uchet/css/admin.css' %}">
+{% endblock %}
+
+
+
+{% block welcome-msg %}
+    <span>Добро пожаловать!</span>
+    <strong>{{ user.lastname }} {{ user.firstname }} {{ user.middlename|default:"" }}</strong>.
+{% endblock %}
+{% block userlinks %}
+    <a href="{% url 'all_bids' %}">На сайт</a> /
+    <a href="{% url 'admin:password_change' %}">Изменить пароль</a> /
+    <form method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" style="background: none; border: none; color: #001d3d; cursor: pointer; padding: 0; font: inherit;">
+            Выйти
+        </button>
+    </form>
+{% endblock %}

@@ -1,0 +1,409 @@
+/* =============================================
+   Базовые стили и обнуление
+============================================= */
+* {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #001d3d;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #001d3d;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =============================================
+   Шапка (header)
+============================================= */
+header {
+    background-color: #ffd60a;
+    width: 100%;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+header a {
+    color: #001d3d;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+header a:hover {
+    background-color: #ffc300;
+}
+
+header form {
+    margin: 0;
+}
+
+header button {
+    background-color: #001d3d;
+    color: #ffd60a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+header button:hover {
+    background-color: #003566;
+}
+
+/* Кнопка входа для неавторизованных */
+.btn-login {
+    background-color: #001d3d;
+    color: #ffd60a;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.btn-login:hover {
+    background-color: #003566;
+}
+
+/* =============================================
+   Основной контейнер .main
+============================================= */
+.main {
+    background-color: white;
+    margin: 20px;
+    padding: 25px;
+    border-radius: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #0a1eff;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+h2 {
+    text-align: center;
+    color: #001d3d;
+    margin-top: 10px;
+}
+
+/* =============================================
+   Формы, поля ввода, кнопки
+============================================= */
+input, select, textarea, button {
+    background-color: #ffd60a;
+    border: 1px solid #ffc300;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #001d3d;
+    background-color: #ffe484;
+}
+
+button {
+    cursor: pointer;
+    font-weight: bold;
+    background-color: #ffc300;
+    border: none;
+    padding: 8px 16px;
+}
+
+button:hover {
+    background-color: #ffb700;
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+input::placeholder, textarea::placeholder {
+    color: #001d3d;
+    opacity: 0.7;
+}
+
+/* Стили для формы авторизации, создания, редактирования */
+form.main {
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+    gap: 15px;
+}
+
+form.main input,
+form.main textarea,
+form.main button {
+    width: 100%;
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* =============================================
+   Блок фильтров (all_bids, all_components)
+============================================= */
+.filters {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filters form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 2;
+}
+
+.filters form input,
+.filters form select,
+.filters form button {
+    margin: 0;
+}
+
+#search, .filters form input[name="search"] {
+    flex: 2;
+    min-width: 150px;
+}
+
+.btn {
+    background-color: #ffd60a;
+    border: 1px solid #ffc300;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background-color: #ffc300;
+}
+
+select {
+    background-color: #ffd60a;
+    min-width: 120px;
+}
+
+/* =============================================
+   Элементы списка (заявки, комплектующие)
+============================================= */
+.element {
+    border: 2px solid #ffc300;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #fffdf7;
+    transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.element:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.element p {
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+/* Ссылка-обёртка для заявок (a[href]) */
+a .element {
+    cursor: pointer;
+}
+
+/* Дополнительные стили для комплектующих (кнопки внутри .element) */
+.element form {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.element input[type="number"] {
+    width: 130px;
+}
+
+/* =============================================
+   Страница детальной заявки (show_bid)
+============================================= */
+form[method="post"] .element {
+    background-color: #fef9e6;
+}
+
+form[method="post"] a,
+form[method="post"] button {
+    margin-top: 10px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+/* =============================================
+   Сообщения (messages, errors)
+============================================= */
+.messages {
+    list-style: none;
+    margin: 10px 0;
+    padding: 0;
+}
+
+.messages li {
+    background-color: #e6f7e6;
+    border-left: 5px solid #2ecc71;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    color: #1e5f1e;
+}
+
+.messages li.error {
+    background-color: #ffe6e6;
+    border-left-color: #e74c3c;
+    color: #a1220a;
+}
+
+.errors {
+    background-color: #ffe6e6;
+    border: 1px solid #e74c3c;
+    padding: 8px;
+    border-radius: 8px;
+    color: #a1220a;
+    text-align: center;
+}
+
+/* =============================================
+   Страница подтверждения удаления
+============================================= */
+h2 {
+    text-align: center;
+}
+
+form[action*="delete_bid"] {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+form[action*="delete_bid"] button,
+form[action*="delete_bid"] a {
+    background-color: #ffd60a;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+form[action*="delete_bid"] a:hover {
+    background-color: #ffc300;
+}
+
+/* =============================================
+   Страница инструкции
+============================================= */
+.instruction-page h2 {
+    font-size: 1.4rem;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #001d3d;
+    border-left: 4px solid #ffc300;
+    padding-left: 12px;
+}
+.instruction-page ul, .instruction-page p {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+.instruction-page li {
+    margin-left: 20px;
+}
+
+/* =============================================
+   Статус заявки (цветной ярлык)
+============================================= */
+.bid-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background-color: #f0f0f0;
+    color: #001d3d;
+}
+.status-new {
+    background-color: #e0e0e0;
+    color: #001d3d;
+}
+.status-in_progress {
+    background-color: #ffc300;
+    color: #001d3d;
+}
+.status-done {
+    background-color: #2ecc71;
+    color: white;
+}
+
+/* =============================================
+   Адаптивность для мобильных устройств
+============================================= */
+@media (max-width: 650px) {
+    header {
+        flex-direction: column;
+        height: auto;
+        padding: 10px;
+    }
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filters form {
+        flex-direction: column;
+    }
+    .filters form button,
+    .filters a#create {
+        width: 100%;
+        text-align: center;
+    }
+    .element form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .element input[type="number"] {
+        width: 100%;
+    }
+    .bid-status {
+        position: static;
+        display: inline-block;
+        margin-top: 10px;
+    }
+}

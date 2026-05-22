@@ -1,0 +1,31 @@
+{% extends 'uchet/base.html' %}
+
+{% block content %}
+    <div class="filters">
+        <form method="get" action="">
+            {{ form.search }}
+            {{ form.hardware }}
+            <button type="submit">Найти</button>
+        </form>
+    </div>
+    <div>
+        {% for c in components%}
+        <div class="element">
+                <p>{{c.type.name}} {{c.model}}</p>
+            {% for cat in c.type.categories.all %}
+                <p>{{cat.name}}</p>
+            {% endfor %}
+                <p>{{c.counts}}</p>
+            <form method="post" action="{% url 'remove_from_storage' c.id%}">
+                {% csrf_token %}
+                 <input type="number" name="quantity" min="0" placeholder="Кол-во">
+                {% if c.counts == 0 %}
+                    <button type="submit" disabled>Нет на складе</button>
+                {% else %}
+                    <button type="submit">Убрать из склада</button>
+                {% endif %}
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

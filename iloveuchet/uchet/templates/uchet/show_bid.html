@@ -1,0 +1,32 @@
+{% extends 'uchet/base.html' %}
+
+{% block content%}
+<form method="post" action="">
+    <span>Номер заявки: {{bid.id}}</span>
+    <div class="element" style="position: relative;">
+        <span class="bid-status status-{{ bid.status }}">
+            {{ bid.get_status_display }}
+        </span>
+        <div style="margin-top: 15px;">
+           <p><strong>Описание проблемы:</strong> {{ bid.problem_text }}</p>
+            <p><strong>Пользователь:</strong> {{ employee_fullname }}</p>
+            <p><strong>Дата создания:</strong> {{ bid.time_create }}</p>
+            <p><strong>Дата изменения:</strong> {{ bid.time_update }}</p>
+        </div>
+    </div>
+        {% csrf_token %}
+        {% if is_owner and bid.status != 'done' %}
+            <a href="{% url 'edit_bid' bid.id %}" class="btn">Изменить заявку</a>
+        {% endif %}
+        {% if is_owner and bid.status == 'new' %}
+            <a href="{% url 'confirm_delete_bid' bid.id %}" class="btn">Удалить заявку</a>
+        {% endif %}
+    {% if is_sysadmin and not is_owner %}
+        {% if btn_name == 'Заявка закрыта'%}
+            <button type="submit" disabled>{{btn_name}}</button>
+        {% else %}
+            <button type="submit" name="status_btn">{{btn_name}}</button>
+        {% endif %}
+    {% endif %}
+</form>
+{% endblock %}

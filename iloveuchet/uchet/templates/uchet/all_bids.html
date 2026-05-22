@@ -1,0 +1,29 @@
+{% extends 'uchet/base.html' %}
+{% block content %}
+        <div class="filters">
+            <form method="get" action="">
+                {{form.search}}
+                {{form.status}}
+                <button type="submit">Найти</button>
+            </form>
+            <a href="{% url 'create_bid' %}" class="btn">Создать заявку</a>
+        </div>
+        <div>
+            {% for b in bids %}
+            <a href="{% url 'show_bid' bid_id=b.id %}">
+                <div class="element" style="position: relative;">
+                    <span class="bid-status status-{{ b.status }}">
+                        {{ b.get_status_display }}
+                    </span>
+                    <div style="margin-top: 15px;">
+                        <p>Техобслуживание</p>
+                        <p><strong>Описание проблемы:</strong> {{ b.problem_text }}</p>
+                        <p><strong>Пользователь:</strong> {{b.employee.lastname}} {{b.employee.firstname}}
+                            {{b.employee.middlename}} </p>
+                        <p><strong>Дата создания:</strong> {{ b.time_create }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+{% endblock %}

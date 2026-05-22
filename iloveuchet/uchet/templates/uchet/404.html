@@ -1,0 +1,12 @@
+{% extends 'uchet/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="error-page">
+    <div class="main">
+        <h1>Ошибка 404</h1>
+        <p>Страница, которую вы ищете, не найдена.</p>
+        <a href="{% url 'all_bids' %}" class="btn">Вернуться на главную</a>
+    </div>
+</div>
+{% endblock %}

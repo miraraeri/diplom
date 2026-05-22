@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="{% static 'uchet/css/style.css' %}">
+    <title>{{title}}</title>
+</head>
+<body>
+    <header>
+     {% block main_menu %}
+        {% if menu %}
+         {% for m in menu %}
+            <a href="{% url m.url_name%}">{{m.title}}</a>
+         {% endfor %}
+        {% endif %}
+        {% if user and user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Выйти</button>
+            </form>
+        {% else %}
+           {% if not hide_login_button %}
+                <a href="{% url 'login' %}" class="btn-login">Войти</a>
+           {% endif %}
+        {% endif %}
+     {% endblock main_menu %}
+    </header>
+    <div class="main">
+        <h1>{{heading}}</h1>
+         {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                        {{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

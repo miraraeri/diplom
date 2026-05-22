@@ -1,0 +1,14 @@
+{% extends 'uchet/base.html' %}
+
+{% block content %}
+<div>
+    <form class="main" method="post" action="{% url 'delete_bid' bid.id %}">
+    <h1>Подтверждение удаления</h1>
+    <p>Вы действительно хотите удалить заявку №{{ bid.id }}?</p>
+    <p>Описание: {{ bid.problem_text }}</p>
+        {% csrf_token %}
+        <button type="submit">Да, удалить</button>
+        <a href="{% url 'show_bid' bid.id %}">Отмена</a>
+    </form>
+</div>
+{% endblock %}
