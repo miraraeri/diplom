@@ -98,6 +98,15 @@ header {
     background-color: #003566;
 }
 
+header .nav-links .btn-login {
+    color: #ffd60a;
+}
+
+header .nav-links .btn-login:hover {
+    background-color: #003566;
+    color: #ffd60a;
+}
+
 /* =============================================
    Основной контейнер .main
 ============================================= */
