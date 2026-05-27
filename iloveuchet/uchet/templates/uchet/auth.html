@@ -5,12 +5,16 @@
         <form method="post" class="main" action="">
             {% csrf_token %}
             <h1>Авторизация</h1>
-            {{form.contacts}}
-            {{form.password}}
+            {{ form.contacts }}
+            {{ form.password }}
             <button type="submit">Войти</button>
             <h2>Нет аккаунта? Обратитесь к администратору</h2>
-             {% if form.non_field_errors %}
-                <div class="errors">{{ form.non_field_errors }}</div>
+            {% if form.non_field_errors %}
+                <div class="errors">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
             {% endif %}
         </form>
     </div>

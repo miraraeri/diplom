@@ -1,0 +1,218 @@
+{% extends 'uchet/base.html' %}
+{% load static %}
+
+{% block content %}
+{% if user_role == 'Системный администратор' %}
+    <div class="main">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+            <div class="stat-card">
+                <h3>Мои показатели</h3>
+                <p>Принято заявок: {{ my_accepted_count }}</p>
+                <p>Завершено заявок: {{ my_completed_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Топ отделов (мои заявки)</h3>
+                <ul>
+                    {% for d in bids_by_department %}
+                        <li><strong>{{ d.employee__department__name|default:"Не указан" }}</strong> — {{ d.cnt }} заявок</li>
+                    {% empty %}
+                        <li>Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% else %}
+<div class="main">
+    <!-- Карточки с основными показателями -->
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+        <div class="stat-card">
+            <h3>Заявки</h3>
+            <p>Всего: {{ total_bids }}</p>
+            <p>Новые: {{ new_bids }}</p>
+            <p>В работе: {{ in_progress_bids }}</p>
+            <p>Завершённые: {{ done_bids }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Комплектующие</h3>
+            <p>Всего на складе: {{ total_components }}</p>
+            <p>Позиций с остатком < 5: {{ low_stock_components }}</p>
+        </div>
+    </div>
+
+    <!-- Подключаем Chart.js один раз для всех графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Динамика создания заявок (линейный график) -->
+    <h3>Динамика создания заявок (последние 30 дней)</h3>
+    {% if daily_data %}
+        <div class="chart-container">
+            <canvas id="bidsChart"></canvas>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('bidsChart').getContext('2d');
+                const dailyData = {{ daily_data|safe }};
+                const labels = dailyData.map(item => item.date);
+                const counts = dailyData.map(item => item.count);
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Количество заявок',
+                            data: counts,
+                            borderColor: '#ffc300',
+                            backgroundColor: 'rgba(255, 195, 0, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'top' }
+                        }
+                    }
+                });
+            });
+        </script>
+    {% else %}
+        <p>Нет заявок за последние 30 дней.</p>
+    {% endif %}
+
+    <!-- Круговая диаграмма соотношения статусов -->
+    <h3>Соотношение заявок по статусам</h3>
+    <div class="chart-container">
+        <canvas id="statusChart" style="max-width: 400px; max-height: 400px;"></canvas>
+    </div>
+    <script>
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ status_labels_with_percent|safe }},
+                datasets: [{
+                    data: [{{ status_stats.new }}, {{ status_stats.in_progress }}, {{ status_stats.done }}],
+                    backgroundColor: ['#e0e0e0', '#ffc300', '#2ecc71'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+
+    <h3>Принятые vs Завершённые заявки по дням (последние 30 дней)</h3>
+    <div class="chart-container">
+        <canvas id="acceptedCompletedChart" style="max-width:100%; max-height:300px;"></canvas>
+    </div>
+    <script>
+        const ctx2 = document.getElementById('acceptedCompletedChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Принятые',
+                        data: {{ accepted_counts|safe }},
+                        backgroundColor: '#ffc300',
+                        borderColor: '#ffc300',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Завершённые',
+                        data: {{ completed_counts|safe }},
+                        backgroundColor: '#2ecc71',
+                        borderColor: '#2ecc71',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Количество заявок' } },
+                    x: { title: { display: true, text: 'Дата' } }
+                }
+            }
+        });
+    </script>
+
+    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+        <!-- Топ отделов -->
+        <div class="stat-card">
+            <h3>Топ отделов по заявкам</h3>
+            <ul>
+                {% for d in bids_by_department %}
+                <li><strong>{{ d.employee__department__name|default:"Не указан" }}</strong> — {{ d.cnt }} заявок</li>
+                {% empty %}
+                <li>Нет данных</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+            <div class="stat-card">
+                <h3>Топ сисадминов по принятым заявкам</h3>
+                <ul>
+                    {% for a in top_accepted %}
+                        <li><strong>{{ a.accepted_by__lastname }} {{ a.accepted_by__firstname }}</strong> — {{ a.cnt }} заявок</li>
+                    {% empty %}
+                        <li>Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="stat-card">
+                <h3>Топ сисадминов по завершённым заявкам</h3>
+                <ul>
+                    {% for c in top_completed %}
+                        <li><strong>{{ c.completed_by__lastname }} {{ c.completed_by__firstname }}</strong> — {{ c.cnt }} заявок</li>
+                    {% empty %}
+                        <li>Нет данных</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Последние транзакции комплектующих (только админ) -->
+    {% if transactions %}
+    <div style="margin-top: 30px; overflow-x: auto;">
+        <h3>Последние списания комплектующих</h3>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Комплектующее</th>
+                    <th>Кто взял</th>
+                    <th>Количество</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.component.model }}</td>
+                    <td>{{ t.user.lastname }} {{ t.user.firstname }}</td>
+                    <td>{{ t.quantity }}</td>
+                    <td>{{ t.taken_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    <!-- Кнопки экспорта -->
+    <div style="margin-top: 30px;">
+        <a href="{% url 'export_bids_csv' %}" class="btn">Экспорт заявок (CSV)</a>
+        <a href="{% url 'export_transactions_csv' %}" class="btn">Экспорт транзакций (CSV)</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

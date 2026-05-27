@@ -1,5 +1,8 @@
+import csv
+
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import *
 from .forms import *
@@ -7,6 +10,10 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .utils import *
 from django.core.paginator import Paginator
+from django.db.models.functions import TruncDate
+from datetime import datetime, timedelta
+from django.utils import timezone
+
 
 # Create your views here.
 
@@ -107,9 +114,13 @@ def show_bid(request, bid_id):
     if request.method == 'POST' and user_role == 'Системный администратор' and not is_owner:
         if bid.status == 'new':
             bid.status = 'in_progress'
+            bid.accepted_at = timezone.now()
+            bid.accepted_by = user
             messages.success(request, 'Заявка принята в работу')
         elif bid.status == 'in_progress':
             bid.status = 'done'
+            bid.completed_at = timezone.now()
+            bid.completed_by = user
             messages.success(request, 'Заявка закрыта')
         bid.save()
         return redirect('show_bid', bid_id=bid_id)
@@ -132,7 +143,7 @@ def show_bid(request, bid_id):
 
 
 @login_required
-@role_required(['Администратор', 'Системный администратор'])
+@role_required(['Системный администратор'])
 def edit_resolution(request, bid_id):
     bid = get_object_or_404(Bids, pk=bid_id)
 
@@ -155,7 +166,7 @@ def confirm_delete_bid(request, bid_id):
 
     if not is_owner:
         raise PermissionDenied("Вы не можете подтвердить удаление чужой заявки.")
-    
+
     if bid.status != 'new':
         messages.error(request, 'Нельзя удалить заявку, которая уже в работе или завершена')
         return redirect('show_bid', bid_id=bid.id)
@@ -281,13 +292,200 @@ def remove_from_storage(request, component_id):
             if component.counts >= counts:
                 component.counts -= counts
                 component.save()
-            else:
-                messages.success(request, 'Нельзя убрать больше, чем есть на складе')
-            return redirect('all_components')
 
-        except Exception:
-            messages.success(request, 'Введите количество комплектующих')
-            return redirect('all_components')
+                ComponentTransaction.objects.create(
+                    component=component,
+                    user=request.user,
+                    quantity=counts,
+                    comment=request.POST.get('comment', '')
+                )
+                messages.success(request, f'Списано {counts} шт.')
+            else:
+                messages.error(request, 'Нельзя убрать больше, чем есть на складе')
+        except ValueError:
+            messages.error(request, 'Введите корректное количество')
+        return redirect('all_components')
+    return redirect('all_components')
+
+
+@login_required()
+@role_required(['Администратор', 'Системный администратор'])
+def statistics_view(request):
+    user = request.user
+    user_role = user.role.name
+
+    total_bids = Bids.objects.count()
+    new_bids = Bids.objects.filter(status='new').count()
+    in_progress_bids = Bids.objects.filter(status='in_progress').count()
+    done_bids = Bids.objects.filter(status='done').count()
+
+    bids_by_department = (Bids.objects
+                          .values('employee__department__name')
+                          .annotate(cnt=Count('id'))
+                          .order_by('-cnt')[:5])
+
+    # Топ системных администраторов по принятым заявкам
+    top_accepted = (Bids.objects
+                    .filter(accepted_by__isnull=False)
+                    .values('accepted_by__lastname', 'accepted_by__firstname')
+                    .annotate(cnt=Count('id'))
+                    .order_by('-cnt')[:5])
+
+    # Топ системных администраторов по завершённым заявкам
+    top_completed = (Bids.objects
+                     .filter(completed_by__isnull=False)
+                     .values('completed_by__lastname', 'completed_by__firstname')
+                     .annotate(cnt=Count('id'))
+                     .order_by('-cnt')[:5])
+
+    # Динамика за последние 30 дней (для линейного графика)
+    last_30_days = timezone.now() - timedelta(days=30)
+    bids_daily_qs = (Bids.objects
+                     .filter(time_create__gte=last_30_days)
+                     .annotate(date=TruncDate('time_create'))
+                     .values('date')
+                     .annotate(count=Count('id'))
+                     .order_by('date'))
+
+    daily_data = [
+        {'date': item['date'].strftime('%Y-%m-%d'), 'count': item['count']}
+        for item in bids_daily_qs
+    ]
+
+    # Принятые по дням
+    accepted_daily = (Bids.objects
+                      .filter(accepted_at__gte=last_30_days)
+                      .annotate(date=TruncDate('accepted_at'))
+                      .values('date')
+                      .annotate(count=Count('id'))
+                      .order_by('date'))
+    accepted_dict = {item['date'].strftime('%Y-%m-%d'): item['count'] for item in accepted_daily}
+
+    # Завершённые по дням
+    completed_daily = (Bids.objects
+                       .filter(completed_at__gte=last_30_days)
+                       .annotate(date=TruncDate('completed_at'))
+                       .values('date')
+                       .annotate(count=Count('id'))
+                       .order_by('date'))
+    completed_dict = {item['date'].strftime('%Y-%m-%d'): item['count'] for item in completed_daily}
+
+    # Список всех дат за 30 дней
+    dates = [(timezone.now() - timedelta(days=i)).date() for i in range(30, -1, -1)]
+    chart_labels = [d.strftime('%Y-%m-%d') for d in dates]
+    accepted_counts = [accepted_dict.get(d.strftime('%Y-%m-%d'), 0) for d in dates]
+    completed_counts = [completed_dict.get(d.strftime('%Y-%m-%d'), 0) for d in dates]
+
+    # Для круговой диаграммы
+    status_stats = {
+        'new': new_bids,
+        'in_progress': in_progress_bids,
+        'done': done_bids,
+    }
+
+    total = status_stats['new'] + status_stats['in_progress'] + status_stats['done']
+    if total > 0:
+        new_percent = round(status_stats['new'] / total * 100, 1)
+        in_progress_percent = round(status_stats['in_progress'] / total * 100, 1)
+        done_percent = round(status_stats['done'] / total * 100, 1)
+    else:
+        new_percent = in_progress_percent = done_percent = 0
+
+    status_labels_with_percent = [
+        f"Новые ({new_percent}%)",
+        f"В работе ({in_progress_percent}%)",
+        f"Завершённые ({done_percent}%)"
+    ]
+
+    transactions = ComponentTransaction.objects.select_related('component', 'user').order_by('-taken_at')[:20]
+    total_components = Components.objects.aggregate(total=Sum('counts'))['total'] or 0
+    low_stock_components = Components.objects.filter(counts__lt=5).count()
+
+    if user_role == 'Системный администратор':
+        # Персональная статистика для сисадмина
+        my_accepted_count = Bids.objects.filter(accepted_by=user).count()
+        my_completed_count = Bids.objects.filter(completed_by=user).count()
+
+        # Заявки, которые он обрабатывал (принял или завершил)
+        handled_bids = Bids.objects.filter(Q(accepted_by=user) | Q(completed_by=user))
+        bids_by_department = (handled_bids
+                              .values('employee__department__name')
+                              .annotate(cnt=Count('id'))
+                              .order_by('-cnt')[:5])
+
+        context = {
+            'title': 'Моя статистика',
+            'heading': 'Моя статистика',
+            'user_role': user_role,
+            'my_accepted_count': my_accepted_count,
+            'my_completed_count': my_completed_count,
+            'bids_by_department': bids_by_department,
+        }
+        return render(request, 'uchet/statistics.html', context)
+
+    context = {
+        'title': 'Статистика',
+        'heading': 'Статистика и отчёты',
+        'total_bids': total_bids,
+        'new_bids': new_bids,
+        'in_progress_bids': in_progress_bids,
+        'done_bids': done_bids,
+        'bids_by_department': bids_by_department,
+        'daily_data': daily_data,
+        'top_accepted': top_accepted,
+        'top_completed': top_completed,
+        'chart_labels': chart_labels,
+        'accepted_counts': accepted_counts,
+        'completed_counts': completed_counts,
+        'status_stats': status_stats,
+        'status_labels_with_percent': status_labels_with_percent,
+        'transactions': transactions,
+        'total_components': total_components,
+        'low_stock_components': low_stock_components,
+
+        'user_role': user_role,
+    }
+    return render(request, 'uchet/statistics.html', context)
+
+
+def export_bids_csv(request):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="bids_export.csv"'
+    response.write('\ufeff')  # BOM для Excel
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Проблема', 'Сотрудник', 'Статус', 'Создано', 'Обновлено', 'Решение'])
+    bids = Bids.objects.select_related('employee')
+    for b in bids:
+        writer.writerow([
+            b.id,
+            b.problem_text,
+            f"{b.employee.lastname} {b.employee.firstname} {b.employee.middlename or ''}",
+            b.get_status_display(),
+            b.time_create.strftime('%Y-%m-%d %H:%M'),
+            b.time_update.strftime('%Y-%m-%d %H:%M'),
+            b.resolution or ''
+        ])
+    return response
+
+
+def export_transactions_csv(request):
+    if request.user.role.name != 'Администратор':
+        raise PermissionDenied
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="components_transactions.csv"'
+    response.write('\ufeff')
+    writer = csv.writer(response)
+    writer.writerow(['Комплектующее', 'Взял(а)', 'Количество', 'Дата', 'Примечание'])
+    transactions = ComponentTransaction.objects.select_related('component', 'user')
+    for t in transactions:
+        writer.writerow([
+            t.component.model,
+            f"{t.user.lastname} {t.user.firstname} {t.user.middlename or ''}",
+            t.quantity,
+            t.taken_at.strftime('%Y-%m-%d %H:%M'),
+            t.comment
+        ])
+    return response
 
 
 def instruction(request):

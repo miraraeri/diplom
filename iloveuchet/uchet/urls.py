@@ -16,5 +16,8 @@ urlpatterns = [
     path('bid/<int:bid_id>/delete/', confirm_delete_bid, name='confirm_delete_bid'),
     path('bid/<int:bid_id>/delete/done/', delete_bid, name='delete_bid'),
     path('edit_bid/<int:bid_id>', edit_bid, name='edit_bid'),
-    path('bid/<int:bid_id>/edit-resolution/', edit_resolution, name='edit_resolution')
+    path('bid/<int:bid_id>/edit-resolution/', edit_resolution, name='edit_resolution'),
+    path('statistics/', statistics_view, name='statistics'),
+    path('export/bids/', export_bids_csv, name='export_bids_csv'),
+    path('export/transactions/', export_transactions_csv, name='export_transactions_csv')
 ]

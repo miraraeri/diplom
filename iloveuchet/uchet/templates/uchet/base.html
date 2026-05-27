@@ -4,28 +4,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link type="text/css" rel="stylesheet" href="{% static 'uchet/css/style.css' %}">
     <title>{{title}}</title>
 </head>
 <body>
-    <header>
-     {% block main_menu %}
-        {% if menu %}
-         {% for m in menu %}
-            <a href="{% url m.url_name%}">{{m.title}}</a>
-         {% endfor %}
-        {% endif %}
-        {% if user and user.is_authenticated %}
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit">Выйти</button>
-            </form>
-        {% else %}
-           {% if not hide_login_button %}
-                <a href="{% url 'login' %}" class="btn-login">Войти</a>
-           {% endif %}
-        {% endif %}
-     {% endblock main_menu %}
+   <header>
+        <div class="header-top">
+            <button class="menu-toggle" id="menuToggle" aria-label="Меню">☰</button>
+        </div>
+        <nav class="nav-links" id="navLinks">
+            {% block main_menu %}
+                {% if menu %}
+                    {% for m in menu %}
+                        <a href="{% url m.url_name %}">{{ m.title }}</a>
+                    {% endfor %}
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">Выйти</button>
+                    </form>
+                {% else %}
+                    {% if not hide_login_button %}
+                    <a href="{% url 'login' %}" class="btn-login">Войти</a>
+                    {% endif %}
+                {% endif %}
+            {% endblock %}
+        </nav>
     </header>
     <div class="main">
         <h1>{{heading}}</h1>
@@ -46,5 +52,14 @@
         <p>© 2026 Хабирова Милана. Все права защищены.</p>
     </footer>
     {% endif %}
+    <script>
+    document.addEventListener("DOMContentLoaded",()=>{
+        const btn = document.getElementById("menuToggle");
+        const menu = document.getElementById("navLinks");
+        btn.addEventListener("click",()=>{
+            menu.classList.toggle("show");
+        });
+    });
+    </script>
 </body>
 </html>

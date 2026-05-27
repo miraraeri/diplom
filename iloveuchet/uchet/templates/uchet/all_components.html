@@ -11,9 +11,10 @@
     <div>
         {% for c in components%}
         <div class="element">
-                <p>{{c.type.name}} {{c.model}}</p>
+            <p>{{c.type.name}} {{c.model}}</p>
+            <p><strong>Входит в устройства: </strong></p>
             {% for cat in c.type.categories.all %}
-            <p><strong>Входит в устройства: </strong>{{cat.name}}</p>
+            <p>{{cat.name}}</p>
             {% endfor %}
             <p><strong>Количество на складе:</strong> {{c.counts}}</p>
             <form method="post" action="{% url 'remove_from_storage' c.id%}">

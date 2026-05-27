@@ -111,6 +111,12 @@ class Bids(models.Model):
     status = models.CharField(max_length=255, choices=STATUSES, verbose_name='Статус')
 
     resolution = models.TextField(blank=True, null=True, verbose_name='Решение проблемы')
+    accepted_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата принятия')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата завершения')
+    accepted_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='accepted_bids', verbose_name='Принял')
+    completed_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='completed_bids', verbose_name='Завершил')
 
     def __str__(self):
         return f'№{self.pk}'
@@ -196,3 +202,16 @@ class Components(models.Model):
     class Meta:
         verbose_name = 'Комплектующее'
         verbose_name_plural = 'Комплектующие'
+
+
+class ComponentTransaction(models.Model):
+    component = models.ForeignKey('Components', on_delete=models.CASCADE, verbose_name='Комплектующее')
+    user = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='Кто взял')
+    quantity = models.PositiveIntegerField(verbose_name='Количество')
+    taken_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата взятия')
+    comment = models.CharField(max_length=255, blank=True, verbose_name='Примечание (например, для какой заявки)')
+
+    class Meta:
+        verbose_name = 'Транзакция комплектующего'
+        verbose_name_plural = 'Транзакции комплектующих'
+

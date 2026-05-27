@@ -18,21 +18,39 @@ body {
 }
 
 /* =============================================
-   Шапка (header)
+   Шапка (header) – десктоп: ссылки слева, вход справа
 ============================================= */
 header {
     background-color: #ffd60a;
     width: 100%;
     padding: 0 20px;
-    height: 60px;
+    min-height: 60px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 15px;
     flex-wrap: wrap;
 }
 
-header a {
+/* Контейнер с кнопкой-гамбургером – на десктопе пустой, скрываем кнопку */
+.header-top {
+    display: none;
+}
+
+.menu-toggle {
+    display: none;
+}
+
+/* Навигация – всегда видима, горизонтальна */
+.nav-links {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Все ссылки внутри меню (кроме формы/кнопки входа) – идут слева */
+.nav-links a {
     color: #001d3d;
     font-weight: bold;
     padding: 8px 12px;
@@ -40,15 +58,18 @@ header a {
     transition: background 0.2s;
 }
 
-header a:hover {
+.nav-links a:hover {
     background-color: #ffc300;
 }
 
-header form {
-    margin: 0;
+/* Форма выхода и кнопка "Войти" – прижимаем к правому краю */
+.nav-links form,
+.nav-links .btn-login {
+    margin-left: auto;
 }
 
-header button {
+/* Кнопка выхода (внутри формы) */
+.nav-links button {
     background-color: #001d3d;
     color: #ffd60a;
     border: none;
@@ -58,7 +79,7 @@ header button {
     font-weight: bold;
 }
 
-header button:hover {
+.nav-links button:hover {
     background-color: #003566;
 }
 
@@ -70,7 +91,9 @@ header button:hover {
     border-radius: 8px;
     font-weight: bold;
     transition: background 0.2s;
+    display: inline-block;
 }
+
 .btn-login:hover {
     background-color: #003566;
 }
@@ -144,7 +167,6 @@ input::placeholder, textarea::placeholder {
     opacity: 0.7;
 }
 
-/* Стили для формы авторизации, создания, редактирования */
 form.main {
     max-width: 500px;
     margin: 0 auto;
@@ -164,7 +186,7 @@ textarea {
 }
 
 /* =============================================
-   Блок фильтров (all_bids, all_components)
+   Блок фильтров
 ============================================= */
 .filters {
     display: flex;
@@ -236,12 +258,10 @@ select {
     line-height: 1.4;
 }
 
-/* Ссылка-обёртка для заявок (a[href]) */
 a .element {
     cursor: pointer;
 }
 
-/* Дополнительные стили для комплектующих (кнопки внутри .element) */
 .element form {
     margin-top: 10px;
     display: flex;
@@ -254,9 +274,6 @@ a .element {
     width: 130px;
 }
 
-/* =============================================
-   Страница детальной заявки (show_bid)
-============================================= */
 form[method="post"] .element {
     background-color: #fef9e6;
 }
@@ -269,21 +286,26 @@ form[method="post"] button {
 }
 
 /* =============================================
-   Сообщения (messages, errors)
+   Сообщения
 ============================================= */
 .messages {
-    list-style: none;
+    width: fit-content;
+    max-width: 90%;
     margin: 10px 0;
     padding: 0;
+    list-style: none;
 }
 
 .messages li {
     background-color: #e6f7e6;
     border-left: 5px solid #2ecc71;
     padding: 10px 15px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border-radius: 8px;
     color: #1e5f1e;
+    width: fit-content;
+    min-width: 200px;
+    list-style: none;
 }
 
 .messages li.error {
@@ -295,24 +317,24 @@ form[method="post"] button {
 .errors {
     background-color: #ffe6e6;
     border: 1px solid #e74c3c;
-    padding: 8px;
+    padding: 8px 15px;
     border-radius: 8px;
     color: #a1220a;
     text-align: center;
+    width: fit-content;
+    max-width: 90%;
+    margin: 10px 0;
 }
 
 /* =============================================
-   Страница подтверждения удаления
+   Подтверждение удаления
 ============================================= */
-h2 {
-    text-align: center;
-}
-
 form[action*="delete_bid"] {
     display: flex;
     gap: 20px;
     justify-content: center;
     margin-top: 20px;
+    flex-wrap: wrap;
 }
 
 form[action*="delete_bid"] button,
@@ -328,7 +350,7 @@ form[action*="delete_bid"] a:hover {
 }
 
 /* =============================================
-   Страница инструкции
+   Инструкция
 ============================================= */
 .instruction-page h2 {
     font-size: 1.4rem;
@@ -347,7 +369,7 @@ form[action*="delete_bid"] a:hover {
 }
 
 /* =============================================
-   Статус заявки (цветной ярлык)
+   Статус заявки
 ============================================= */
 .bid-status {
     position: absolute;
@@ -374,15 +396,15 @@ form[action*="delete_bid"] a:hover {
 }
 
 /* =============================================
-   Футер (подвал)
+   Футер
 ============================================= */
 footer {
     background-color: #ffd60a;
-    text-align: left;
+    text-align: center;
     padding: 15px 20px;
     width: 100%;
     box-sizing: border-box;
-    margin-top: auto;        /* прижимает футер к низу */
+    margin-top: auto;
     font-size: 0.9rem;
     border-top: 1px solid #ffc300;
 }
@@ -402,8 +424,30 @@ footer a {
 footer a:hover {
     text-decoration: underline;
 }
+
 /* =============================================
-   Пагинация (постраничная навигация)
+   Страницы ошибок
+============================================= */
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 20px;
+    min-height: 60vh;
+    flex: 1;
+}
+
+.error-container .main {
+    flex: none;
+    width: fit-content;
+    min-width: 300px;
+    max-width: 500px;
+    margin: 0;
+    text-align: center;
+}
+
+/* =============================================
+   Пагинация
 ============================================= */
 .pagination {
     display: flex;
@@ -426,14 +470,172 @@ footer a:hover {
 }
 
 /* =============================================
-   Адаптивность для мобильных устройств
+   Статистика
+============================================= */
+.stat-card {
+    background: #fffdf7;
+    border: 1px solid #ffc300;
+    border-radius: 20px;
+    padding: 18px;
+    min-width: 200px;
+    width: fit-content;
+    flex: 0 0 auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.stat-card h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #ffc300;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+.stat-card ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.stat-cards-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.styled-table thead tr {
+    background-color: #ffd60a;
+    color: #001d3d;
+    text-align: left;
+    font-weight: bold;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ffc300;
+    word-break: break-word;
+}
+
+.styled-table tbody tr {
+    background-color: #fffdf7;
+    transition: 0.2s;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background-color: #fef9e6;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #ffe484;
+    transform: scale(1.01);
+    cursor: default;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+.export-buttons .btn {
+    flex: 1 0 auto;
+    text-align: center;
+}
+
+/* =============================================
+   Адаптивность для мобильных устройств (ширина ≤ 650px)
 ============================================= */
 @media (max-width: 650px) {
     header {
         flex-direction: column;
-        height: auto;
+        align-items: stretch;
         padding: 10px;
     }
+    .header-top {
+        display: flex;
+        justify-content: flex-end;
+    }
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 5px 10px;
+        color: #001d3d;
+    }
+    .nav-links {
+        display: none !important;
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+        margin-top: 15px;
+        background-color: #ffd60a;
+        border-radius: 16px;
+        padding: 15px 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        animation: fadeIn 0.3s ease;
+    }
+    .nav-links.show {
+        display: flex !important;
+    }
+    /* Ссылки и кнопки – как отдельные "плитки" */
+    .nav-links a,
+    .nav-links button,
+    .btn-login {
+        width: 100%;
+        text-align: center;
+        background-color: #fffdf7;
+        border: 1px solid #ffc300;
+        border-radius: 40px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #001d3d;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .nav-links a:hover,
+    .nav-links button:hover,
+    .btn-login:hover {
+        background-color: #ffc300;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    /* Кнопка выхода внутри формы – особый стиль */
+    .nav-links form button {
+        background-color: #001d3d;
+        color: #ffd60a;
+        border: none;
+    }
+    .nav-links form button:hover {
+        background-color: #003566;
+        transform: translateY(-2px);
+    }
+    .nav-links form {
+        margin: 0;
+        width: 100%;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Фильтры, карточки, общие элементы */
     .filters {
         flex-direction: column;
         align-items: stretch;
@@ -442,24 +644,69 @@ footer a:hover {
         flex-direction: column;
     }
     .filters form button,
-    .filters a#create {
+    .filters a#create,
+    .btn {
         width: 100%;
         text-align: center;
+        margin-top: 5px;
     }
-    .element form {
-        flex-direction: column;
-        align-items: stretch;
+    .element {
+        padding: 10px;
     }
-    .element input[type="number"] {
-        width: 100%;
+    .element p {
+        font-size: 0.85rem;
     }
     .bid-status {
         position: static;
         display: inline-block;
-        margin-top: 10px;
+        margin-top: 8px;
     }
     footer {
-        padding: 10px;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
+        padding: 8px;
+    }
+
+    /* Уменьшаем отступы на страницах статистики и инструкции (мобилки) */
+    .main {
+        padding: 15px;
+        margin: 10px;
+        gap: 10px;
+    }
+    .main h1, .main h2 {
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+    .stat-cards-wrapper {
+        margin-bottom: 15px;
+        gap: 10px;
+    }
+    .stat-card {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+    .chart-container {
+        margin-bottom: 15px;
+    }
+    .instruction-page h2 {
+        font-size: 1.2rem;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        padding-left: 8px;
+    }
+    .instruction-page p, .instruction-page ul {
+        margin: 8px 0;
+    }
+    .instruction-page li {
+        margin-left: 15px;
+    }
+
+    /* Кнопки экспорта – компактно и без дублирования */
+    .export-buttons {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    .export-buttons .btn {
+        width: 100%;
     }
 }

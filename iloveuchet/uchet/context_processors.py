@@ -6,8 +6,11 @@ def menu(request):
 
         if user_role == 'Администратор':
             menu_items.append({'title': 'АдминПанель', 'url_name': 'admin:index'})
+            menu_items.append({'title': 'Статистика', 'url_name': 'statistics'})
             menu_items.append({'title': 'Комплектующие', 'url_name': 'all_components'})
+
         elif user_role == 'Системный администратор':
+            menu_items.append({'title': 'Статистика', 'url_name': 'statistics'})
             menu_items.append({'title': 'Комплектующие', 'url_name': 'all_components'})
 
         menu_items.append({'title': 'Заявки', 'url_name': 'all_bids'})
