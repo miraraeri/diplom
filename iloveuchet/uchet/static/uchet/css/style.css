@@ -99,6 +99,7 @@ header {
 }
 
 header .nav-links .btn-login {
+    background-color: #001d3d;
     color: #ffd60a;
 }
 
