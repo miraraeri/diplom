@@ -19,7 +19,7 @@
                         <p>Техобслуживание</p>
                         <p><strong>Описание проблемы:</strong> {{ b.problem_text }}</p>
                         <p><strong>Пользователь:</strong> {{b.employee.lastname}} {{b.employee.firstname}}
-                            {{b.employee.middlename or ""}} </p>
+                            {{b.employee.middlename|default:""}} </p>
                         <p><strong>Дата создания:</strong> {{ b.time_create }}</p>
                     </div>
                 </div>

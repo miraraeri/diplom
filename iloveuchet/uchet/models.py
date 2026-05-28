@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.apps import apps
 # Create your models here.
 
 
@@ -32,8 +33,33 @@ class UserManager(BaseUserManager):
         if not contacts:
             raise ValueError('Телефон обязателен')
 
+        role = extra_fields.pop('role', None)
+        department = extra_fields.pop('department', None)
+
+        if role is not None:
+            Roles = apps.get_model('uchet', 'Roles')
+            if not isinstance(role, Roles):
+                try:
+                    role = Roles.objects.get(pk=role)
+                except Roles.DoesNotExist:
+                    raise ValueError(f'Роль с id={role} не существует')
+
+        if department is not None:
+            Departments = apps.get_model('uchet', 'Departments')
+            if not isinstance(department, Departments):
+                try:
+                    department = Departments.objects.get(pk=department)
+                except Departments.DoesNotExist:
+                    raise ValueError(f'Отдел с id={department} не существует')
+
         extra_fields.setdefault('username', contacts)
-        user = self.model(contacts=contacts, **extra_fields)
+
+        user = self.model(
+            contacts=contacts,
+            role=role,
+            department=department,
+            **extra_fields
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user
