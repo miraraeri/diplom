@@ -63,9 +63,23 @@ header {
 }
 
 /* Форма выхода и кнопка "Войти" – прижимаем к правому краю */
-.nav-links form,
-.nav-links .btn-login {
+.nav-links form {
     margin-left: auto;
+}
+
+.nav-links .btn-login {
+    background-color: #001d3d !important;
+    color: #ffd60a !important;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background 0.2s;
+    display: inline-block;
+    margin-left: auto;
+}
+
+.nav-links .btn-login:hover {
+    background-color: #003566;
 }
 
 /* Кнопка выхода (внутри формы) */
@@ -84,29 +98,7 @@ header {
 }
 
 /* Кнопка входа для неавторизованных */
-.btn-login {
-    background-color: #001d3d;
-    color: #ffd60a;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: background 0.2s;
-    display: inline-block;
-}
 
-.btn-login:hover {
-    background-color: #003566;
-}
-
-header .nav-links .btn-login {
-    background-color: #001d3d !important;
-    color: #ffd60a !important;
-}
-
-header .nav-links .btn-login:hover {
-    background-color: #003566 !important;
-    color: #ffd60a !important;
-}
 
 /* =============================================
    Основной контейнер .main
