@@ -324,21 +324,18 @@ def statistics_view(request):
                           .annotate(cnt=Count('id'))
                           .order_by('-cnt')[:5])
 
-    # Топ системных администраторов по принятым заявкам
     top_accepted = (Bids.objects
                     .filter(accepted_by__isnull=False)
                     .values('accepted_by__lastname', 'accepted_by__firstname')
                     .annotate(cnt=Count('id'))
                     .order_by('-cnt')[:5])
 
-    # Топ системных администраторов по завершённым заявкам
     top_completed = (Bids.objects
                      .filter(completed_by__isnull=False)
                      .values('completed_by__lastname', 'completed_by__firstname')
                      .annotate(cnt=Count('id'))
                      .order_by('-cnt')[:5])
 
-    # Динамика за последние 30 дней (для линейного графика)
     last_30_days = timezone.now() - timedelta(days=30)
     bids_daily_qs = (Bids.objects
                      .filter(time_create__gte=last_30_days)
@@ -352,7 +349,6 @@ def statistics_view(request):
         for item in bids_daily_qs
     ]
 
-    # Принятые по дням
     accepted_daily = (Bids.objects
                       .filter(accepted_at__gte=last_30_days)
                       .annotate(date=TruncDate('accepted_at'))
@@ -361,7 +357,6 @@ def statistics_view(request):
                       .order_by('date'))
     accepted_dict = {item['date'].strftime('%Y-%m-%d'): item['count'] for item in accepted_daily}
 
-    # Завершённые по дням
     completed_daily = (Bids.objects
                        .filter(completed_at__gte=last_30_days)
                        .annotate(date=TruncDate('completed_at'))
@@ -370,13 +365,11 @@ def statistics_view(request):
                        .order_by('date'))
     completed_dict = {item['date'].strftime('%Y-%m-%d'): item['count'] for item in completed_daily}
 
-    # Список всех дат за 30 дней
     dates = [(timezone.now() - timedelta(days=i)).date() for i in range(30, -1, -1)]
     chart_labels = [d.strftime('%Y-%m-%d') for d in dates]
     accepted_counts = [accepted_dict.get(d.strftime('%Y-%m-%d'), 0) for d in dates]
     completed_counts = [completed_dict.get(d.strftime('%Y-%m-%d'), 0) for d in dates]
 
-    # Для круговой диаграммы
     status_stats = {
         'new': new_bids,
         'in_progress': in_progress_bids,
@@ -402,11 +395,9 @@ def statistics_view(request):
     low_stock_components = Components.objects.filter(counts__lt=5).count()
 
     if user_role == 'Системный администратор':
-        # Персональная статистика для сисадмина
         my_accepted_count = Bids.objects.filter(accepted_by=user).count()
         my_completed_count = Bids.objects.filter(completed_by=user).count()
 
-        # Заявки, которые он обрабатывал (принял или завершил)
         handled_bids = Bids.objects.filter(Q(accepted_by=user) | Q(completed_by=user))
         bids_by_department = (handled_bids
                               .values('employee__department__name')

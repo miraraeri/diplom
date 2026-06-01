@@ -24,7 +24,6 @@
     </div>
 {% else %}
 <div class="main">
-    <!-- Карточки с основными показателями -->
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
         <div class="stat-card">
             <h3>Заявки</h3>
@@ -40,10 +39,8 @@
         </div>
     </div>
 
-    <!-- Подключаем Chart.js один раз для всех графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- Динамика создания заявок (линейный график) -->
     <h3>Динамика создания заявок (последние 30 дней)</h3>
     {% if daily_data %}
         <div class="chart-container">
@@ -83,7 +80,6 @@
         <p>Нет заявок за последние 30 дней.</p>
     {% endif %}
 
-    <!-- Круговая диаграмма соотношения статусов -->
     <h3>Соотношение заявок по статусам</h3>
     <div class="chart-container">
         <canvas id="statusChart" style="max-width: 400px; max-height: 400px;"></canvas>
@@ -146,7 +142,6 @@
     </script>
 
     <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-        <!-- Топ отделов -->
         <div class="stat-card">
             <h3>Топ отделов по заявкам</h3>
             <ul>
@@ -182,7 +177,6 @@
         </div>
     </div>
 
-    <!-- Последние транзакции комплектующих (только админ) -->
     {% if transactions %}
     <div style="margin-top: 30px; overflow-x: auto;">
         <h3>Последние списания комплектующих</h3>
@@ -208,7 +202,7 @@
         </table>
     </div>
     {% endif %}
-    <!-- Кнопки экспорта -->
+
     <div style="margin-top: 30px;">
         <a href="{% url 'export_bids_csv' %}" class="btn">Экспорт заявок (CSV)</a>
         <a href="{% url 'export_transactions_csv' %}" class="btn">Экспорт транзакций (CSV)</a>
