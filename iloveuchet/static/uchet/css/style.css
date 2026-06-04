@@ -1,6 +1,3 @@
-/* =============================================
-   Базовые стили и обнуление
-============================================= */
 * {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
@@ -17,9 +14,6 @@ body {
     min-height: 100vh;
 }
 
-/* =============================================
-   Шапка (header) – десктоп: ссылки слева, вход справа
-============================================= */
 header {
     background-color: #ffd60a;
     width: 100%;
@@ -30,7 +24,6 @@ header {
     flex-wrap: wrap;
 }
 
-/* Контейнер с кнопкой-гамбургером – на десктопе пустой, скрываем кнопку */
 .header-top {
     display: none;
 }
@@ -39,7 +32,6 @@ header {
     display: none;
 }
 
-/* Навигация – всегда видима, горизонтальна */
 .nav-links {
     display: flex !important;
     flex-direction: row;
@@ -49,7 +41,6 @@ header {
     flex-wrap: wrap;
 }
 
-/* Все ссылки внутри меню (кроме формы/кнопки входа) – идут слева */
 .nav-links a {
     color: #001d3d;
     font-weight: bold;
@@ -62,13 +53,25 @@ header {
     background-color: #ffc300;
 }
 
-/* Форма выхода и кнопка "Войти" – прижимаем к правому краю */
-.nav-links form,
-.nav-links .btn-login {
+.nav-links form {
     margin-left: auto;
 }
 
-/* Кнопка выхода (внутри формы) */
+.nav-links .btn-login {
+    background-color: #001d3d;
+    color: #ffd60a;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background 0.2s;
+    display: inline-block;
+    margin-left: auto;
+}
+
+.nav-links .btn-login:hover {
+    background-color: #003566;
+}
+
 .nav-links button {
     background-color: #001d3d;
     color: #ffd60a;
@@ -83,24 +86,6 @@ header {
     background-color: #003566;
 }
 
-/* Кнопка входа для неавторизованных */
-.btn-login {
-    background-color: #001d3d;
-    color: #ffd60a;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: background 0.2s;
-    display: inline-block;
-}
-
-.btn-login:hover {
-    background-color: #003566;
-}
-
-/* =============================================
-   Основной контейнер .main
-============================================= */
 .main {
     background-color: white;
     margin: 20px;
@@ -125,9 +110,6 @@ h2 {
     margin-top: 10px;
 }
 
-/* =============================================
-   Формы, поля ввода, кнопки
-============================================= */
 input, select, textarea, button {
     background-color: #ffd60a;
     border: 1px solid #ffc300;
@@ -185,9 +167,6 @@ textarea {
     resize: vertical;
 }
 
-/* =============================================
-   Блок фильтров
-============================================= */
 .filters {
     display: flex;
     justify-content: space-between;
@@ -236,9 +215,6 @@ select {
     min-width: 120px;
 }
 
-/* =============================================
-   Элементы списка (заявки, комплектующие)
-============================================= */
 .element {
     border: 2px solid #ffc300;
     border-radius: 12px;
@@ -285,9 +261,6 @@ form[method="post"] button {
     display: inline-block;
 }
 
-/* =============================================
-   Сообщения
-============================================= */
 .messages {
     width: fit-content;
     max-width: 90%;
@@ -326,9 +299,6 @@ form[method="post"] button {
     margin: 10px 0;
 }
 
-/* =============================================
-   Подтверждение удаления
-============================================= */
 form[action*="delete_bid"] {
     display: flex;
     gap: 20px;
@@ -349,9 +319,6 @@ form[action*="delete_bid"] a:hover {
     background-color: #ffc300;
 }
 
-/* =============================================
-   Инструкция
-============================================= */
 .instruction-page h2 {
     font-size: 1.4rem;
     margin-top: 20px;
@@ -368,9 +335,6 @@ form[action*="delete_bid"] a:hover {
     margin-left: 20px;
 }
 
-/* =============================================
-   Статус заявки
-============================================= */
 .bid-status {
     position: absolute;
     top: 15px;
@@ -395,9 +359,6 @@ form[action*="delete_bid"] a:hover {
     color: white;
 }
 
-/* =============================================
-   Футер
-============================================= */
 footer {
     background-color: #ffd60a;
     text-align: center;
@@ -425,9 +386,6 @@ footer a:hover {
     text-decoration: underline;
 }
 
-/* =============================================
-   Страницы ошибок
-============================================= */
 .error-container {
     display: flex;
     justify-content: center;
@@ -446,9 +404,6 @@ footer a:hover {
     text-align: center;
 }
 
-/* =============================================
-   Пагинация
-============================================= */
 .pagination {
     display: flex;
     justify-content: center;
@@ -469,9 +424,6 @@ footer a:hover {
     font-weight: bold;
 }
 
-/* =============================================
-   Статистика
-============================================= */
 .stat-card {
     background: #fffdf7;
     border: 1px solid #ffc300;
@@ -538,6 +490,11 @@ footer a:hover {
     cursor: default;
 }
 
+.chart-container {
+    width: 100%;
+    height: 400px;
+}
+
 .export-buttons {
     display: flex;
     gap: 15px;
@@ -549,9 +506,6 @@ footer a:hover {
     text-align: center;
 }
 
-/* =============================================
-   Адаптивность для мобильных устройств (ширина ≤ 650px)
-============================================= */
 @media (max-width: 650px) {
     header {
         flex-direction: column;
@@ -586,7 +540,7 @@ footer a:hover {
     .nav-links.show {
         display: flex !important;
     }
-    /* Ссылки и кнопки – как отдельные "плитки" */
+
     .nav-links a,
     .nav-links button,
     .btn-login {
@@ -609,7 +563,7 @@ footer a:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    /* Кнопка выхода внутри формы – особый стиль */
+
     .nav-links form button {
         background-color: #001d3d;
         color: #ffd60a;
@@ -635,7 +589,6 @@ footer a:hover {
         }
     }
 
-    /* Фильтры, карточки, общие элементы */
     .filters {
         flex-direction: column;
         align-items: stretch;
@@ -666,7 +619,6 @@ footer a:hover {
         padding: 8px;
     }
 
-    /* Уменьшаем отступы на страницах статистики и инструкции (мобилки) */
     .main {
         padding: 15px;
         margin: 10px;
@@ -700,7 +652,6 @@ footer a:hover {
         margin-left: 15px;
     }
 
-    /* Кнопки экспорта – компактно и без дублирования */
     .export-buttons {
         flex-direction: column;
         gap: 8px;
