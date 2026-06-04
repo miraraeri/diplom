@@ -42,6 +42,7 @@ header {
 }
 
 .nav-links a {
+    color: #001d3d;
     font-weight: bold;
     padding: 8px 12px;
     border-radius: 8px;
@@ -374,6 +375,17 @@ footer p {
     color: #001d3d;
 }
 
+footer a {
+    color: #001d3d;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
 .error-container {
     display: flex;
     justify-content: center;
@@ -476,6 +488,11 @@ footer p {
     background-color: #ffe484;
     transform: scale(1.01);
     cursor: default;
+}
+
+.chart-container {
+    width: 100%;
+    height: 400px;
 }
 
 .export-buttons {
