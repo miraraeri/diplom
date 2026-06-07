@@ -1,13 +1,15 @@
 {% extends 'uchet/base.html' %}
 
 {% block content %}
-    <div>
-        <form method="post" class="main" action="">
-            {% csrf_token %}
-            <h1>Изменить заявку №{{bid.id}}</h1>
-            {{ form.problem_text }}
-            <button type="submit">Сохранить изменения</button>
-            <a href="{% url 'show_bid' bid.id %}" >Отмена</a>
-        </form>
-    </div>
+<div style="max-width: 600px; margin: 0 auto;">
+    <h1>Изменить заявку №{{ bid.id }}</h1>
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+        {{ form.problem_text }}
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn-primary">Сохранить изменения</button>
+            <a href="{% url 'show_bid' bid.id %}" class="btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
 {% endblock %}

@@ -1,42 +1,214 @@
 {% extends 'uchet/base.html' %}
+
 {% block content %}
-        <div class="filters">
-            <form method="get" action="">
-                {{form.search}}
-                {{form.status}}
-                <button type="submit">Найти</button>
-            </form>
-            <a href="{% url 'create_bid' %}" class="btn">Создать заявку</a>
+<div class="top-bar">
+    <form method="get" action="" class="search-form">
+        <div class="search-wrapper">
+            <input type="text" name="search" placeholder="Поиск..."
+                   value="{{ request.GET.search|default:'' }}" id="search-input">
+            <button type="button" class="search-clear" aria-label="Очистить">✕</button>
+            <button type="submit" class="search-submit">Найти</button>
         </div>
-        <div>
-            {% for b in bids %}
-            <a href="{% url 'show_bid' bid_id=b.id %}">
-                <div class="element" style="position: relative;">
-                    <span class="bid-status status-{{ b.status }}">
-                        {{ b.get_status_display }}
-                    </span>
-                    <div style="margin-top: 15px;">
-                        <p>Техобслуживание</p>
-                        <p><strong>Описание проблемы:</strong> {{ b.problem_text }}</p>
-                        <p><strong>Пользователь:</strong> {{b.employee.lastname}} {{b.employee.firstname}}
-                            {{b.employee.middlename|default:""}} </p>
-                        <p><strong>Дата создания:</strong> {{ b.time_create }}</p>
+    </form>
+    <a href="{% url 'create_bid' %}" class="btn-primary">Создать заявку</a>
+</div>
+
+<form id="filter-form" method="get" action="">
+    <input type="hidden" name="search" value="{{ request.GET.search|default:'' }}">
+    <input type="hidden" name="status" value="{{ request.GET.status|default:'' }}" id="status-input">
+    <input type="hidden" name="date_from" value="{{ request.GET.date_from|default:'' }}" id="date-from-input">
+    <input type="hidden" name="date_to" value="{{ request.GET.date_to|default:'' }}" id="date-to-input">
+    <input type="hidden" name="update_from" value="{{ request.GET.update_from|default:'' }}" id="update-from-input">
+    <input type="hidden" name="update_to" value="{{ request.GET.update_to|default:'' }}" id="update-to-input">
+</form>
+
+<table class="styled-table" id="bid-table">
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Описание</th>
+            <th>Пользователь</th>
+            <th>Дата создания
+                <span class="filter-icon" data-filter="date">▼</span>
+                <div class="filter-dropdown" id="dropdown-date">
+                    <div class="dropdown-content">
+                        <label>от <input type="date" id="date-from"></label>
+                        <label>до <input type="date" id="date-to"></label>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button type="button" class="btn-sm btn-primary" onclick="applyDateFilter()">Применить</button>
+                            <button type="button" class="btn-sm btn-secondary" onclick="clearDateFilter()">Сбросить</button>
+                        </div>
                     </div>
                 </div>
-            </a>
+            </th>
+            <th>Принял в работу</th>
+            <th>Дата изменения
+                <span class="filter-icon" data-filter="update">▼</span>
+                <div class="filter-dropdown" id="dropdown-update">
+                    <div class="dropdown-content">
+                        <label>от <input type="date" id="update-from"></label>
+                        <label>до <input type="date" id="update-to"></label>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button type="button" class="btn-sm btn-primary" onclick="applyUpdateFilter()">Применить</button>
+                            <button type="button" class="btn-sm btn-secondary" onclick="clearUpdateFilter()">Сбросить</button>
+                        </div>
+                    </div>
+                </div>
+            </th>
+            <th>Статус
+                <span class="filter-icon" data-filter="status">▼</span>
+                <div class="filter-dropdown" id="dropdown-status">
+                    <div class="dropdown-content">
+                        <a href="#" onclick="setStatus('')">Все</a>
+                        <a href="#" onclick="setStatus('new')">Новая</a>
+                        <a href="#" onclick="setStatus('in_progress')">В работе</a>
+                        <a href="#" onclick="setStatus('done')">Завершена</a>
+                    </div>
+                </div>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if bids %}
+            {% for b in bids %}
+            <tr data-url="{% url 'show_bid' bid_id=b.id %}" class="status-{{ b.status }}">
+                <td data-label="№">{{ forloop.counter }}</td>
+                <td data-label="Описание">{{ b.problem_text|truncatechars:30 }}</td>
+                <td data-label="Пользователь">{{ b.employee.lastname }} {{ b.employee.firstname }} {{ b.employee.middlename|default:"" }}</td>
+                <td data-label="Дата создания">{{ b.time_create|date:"d.m.Y H:i" }}</td>
+                <td data-label="Принял в работу">{{ b.accepted_by|default:"-" }}</td>
+                <td data-label="Дата изменения">{{ b.time_update|date:"d.m.Y H:i" }}</td>
+                <td data-label="Статус"><span class="bid-status status-{{ b.status }}">{{ b.get_status_display }}</span></td>
+            </tr>
             {% endfor %}
-        </div>
-        {% if bids.paginator.num_pages > 1 %}
-        <div class="pagination">
-            {% if bids.has_previous %}
-                <a href="?page={{ bids.previous_page_number }}&{{ base_params }}" class="btn">← Предыдущая</a>
-            {% endif %}
-
-            <span class="current-page">Страница {{ bids.number }} из {{ bids.paginator.num_pages }}</span>
-
-            {% if bids.has_next %}
-                <a href="?page={{ bids.next_page_number }}&{{ base_params }}" class="btn">Следующая →</a>
-            {% endif %}
-        </div>
+        {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">Заявок не найдено</td>
+            </tr>
         {% endif %}
+    </tbody>
+</table>
+
+{% if bids.paginator.num_pages > 1 %}
+<div class="pagination">
+    {% if bids.has_previous %}
+        <a href="?page={{ bids.previous_page_number }}&{{ base_params }}" class="btn-primary">← Предыдущая</a>
+    {% endif %}
+    <span class="current-page">Страница {{ bids.number }} из {{ bids.paginator.num_pages }}</span>
+    {% if bids.has_next %}
+        <a href="?page={{ bids.next_page_number }}&{{ base_params }}" class="btn-primary">Следующая →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+    // === ПОИСК ===
+    (function() {
+        const searchWrapper = document.querySelector('.search-wrapper');
+        const searchInput = document.getElementById('search-input');
+        const clearBtn = document.querySelector('.search-clear');
+        const submitBtn = document.querySelector('.search-submit');
+        if (!searchWrapper || !searchInput) return;
+
+        searchInput.addEventListener('focus', () => searchWrapper.classList.add('focused'));
+        searchInput.addEventListener('blur', () => {
+            if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                searchInput.value = '';
+                searchInput.focus();
+                searchInput.dispatchEvent(new Event('input'));
+                if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+            });
+        }
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.search-form').submit();
+            });
+        }
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submitBtn?.click(); }
+        });
+    })();
+
+    // === КЛИКАБЕЛЬНЫЕ СТРОКИ ===
+    document.querySelectorAll('#bid-table tbody tr').forEach(row => {
+        row.addEventListener('click', () => window.location.href = row.dataset.url);
+    });
+
+    // === ФИЛЬТРЫ В ЗАГОЛОВКАХ ===
+    let activeDropdown = null;
+
+    document.querySelectorAll('.filter-icon').forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const filter = this.dataset.filter;
+            const dropdown = document.getElementById('dropdown-' + filter);
+            if (!dropdown) return;
+            if (activeDropdown && activeDropdown !== dropdown) {
+                activeDropdown.classList.remove('show');
+            }
+            const isCurrentlyShown = dropdown.classList.contains('show');
+            dropdown.classList.toggle('show', !isCurrentlyShown);
+            activeDropdown = dropdown.classList.contains('show') ? dropdown : null;
+        });
+    });
+
+    // Закрытие по клику вне фильтра и самой иконки
+    document.addEventListener('click', function(e) {
+        if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest('.filter-icon')) {
+            activeDropdown.classList.remove('show');
+            activeDropdown = null;
+        }
+    });
+
+    // Предотвращаем закрытие при клике внутри dropdown (например, на поле даты)
+    document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    // Функции установки фильтров
+    window.setStatus = function(value) {
+        document.getElementById('status-input').value = value;
+        document.getElementById('filter-form').submit();
+    };
+
+    window.applyDateFilter = function() {
+        document.getElementById('date-from-input').value = document.getElementById('date-from').value;
+        document.getElementById('date-to-input').value = document.getElementById('date-to').value;
+        document.getElementById('filter-form').submit();
+    };
+
+    window.clearDateFilter = function() {
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        applyDateFilter();
+    };
+
+    window.applyUpdateFilter = function() {
+        document.getElementById('update-from-input').value = document.getElementById('update-from').value;
+        document.getElementById('update-to-input').value = document.getElementById('update-to').value;
+        document.getElementById('filter-form').submit();
+    };
+
+    window.clearUpdateFilter = function() {
+        document.getElementById('update-from').value = '';
+        document.getElementById('update-to').value = '';
+        applyUpdateFilter();
+    };
+
+    // Заполнение полей дат из GET параметров
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('date_from')) document.getElementById('date-from').value = params.get('date_from');
+        if (params.get('date_to')) document.getElementById('date-to').value = params.get('date_to');
+        if (params.get('update_from')) document.getElementById('update-from').value = params.get('update_from');
+        if (params.get('update_to')) document.getElementById('update-to').value = params.get('update_to');
+    })();
+</script>
 {% endblock %}

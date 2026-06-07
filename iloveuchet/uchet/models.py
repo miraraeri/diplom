@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.apps import apps
-# Create your models here.
 
 
 class Roles(models.Model):
@@ -84,16 +83,8 @@ class User(AbstractUser):
     firstname = models.CharField(max_length=255, verbose_name='Имя')
     middlename = models.CharField(max_length=255, blank=True, null=True, verbose_name='Отчество')
     contacts = models.CharField(max_length=15, unique=True, verbose_name='Контакты')
-    role = models.ForeignKey(
-        'Roles',
-        on_delete=models.CASCADE,
-        verbose_name='Роль'
-    )
-    department = models.ForeignKey(
-        'Departments',
-        on_delete=models.CASCADE,
-        verbose_name='Отдел'
-    )
+    role = models.ForeignKey('Roles', on_delete=models.CASCADE, verbose_name='Роль')
+    department = models.ForeignKey('Departments', on_delete=models.CASCADE, verbose_name='Отдел')
 
     objects = UserManager()
     USERNAME_FIELD = 'contacts'
@@ -102,7 +93,6 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if not self.username or self.username != self.contacts:
             self.username = self.contacts
-
         if self.role and self.role.name == 'Администратор':
             self.is_staff = True
             self.is_superuser = True
@@ -120,28 +110,18 @@ class User(AbstractUser):
 
 
 class Bids(models.Model):
-    employee = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Сотрудник'
-    )
+    employee = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Сотрудник')
     problem_text = models.TextField(verbose_name='Проблема')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Обновлено')
-
-    STATUSES = [
-        ('new', 'Новая'),
-        ('in_progress', 'В работе'),
-        ('done', 'Завершена')
-    ]
+    STATUSES = [('new', 'Новая'), ('in_progress', 'В работе'), ('done', 'Завершена')]
     status = models.CharField(max_length=255, choices=STATUSES, verbose_name='Статус')
-
     resolution = models.TextField(blank=True, null=True, verbose_name='Решение проблемы')
     accepted_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата принятия')
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Дата завершения')
-    accepted_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+    accepted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='accepted_bids', verbose_name='Принял')
-    completed_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                      related_name='completed_bids', verbose_name='Завершил')
 
     def __str__(self):
@@ -155,11 +135,7 @@ class Bids(models.Model):
 
 class Offices(models.Model):
     number = models.CharField(max_length=50, verbose_name='Номер')
-    department = models.ForeignKey(
-        'Departments',
-        on_delete=models.CASCADE,
-        verbose_name='Отдел'
-    )
+    department = models.ForeignKey(Departments, on_delete=models.CASCADE, verbose_name='Отдел')
 
     def __str__(self):
         return self.number
@@ -167,7 +143,6 @@ class Offices(models.Model):
     class Meta:
         verbose_name = 'Кабинет'
         verbose_name_plural = 'Кабинеты'
-
 
 class Categories(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
@@ -179,10 +154,8 @@ class Categories(models.Model):
         verbose_name = 'Категория оборудования'
         verbose_name_plural = 'Категории оборудования'
 
-
 class Types(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
-    categories = models.ManyToManyField(Categories, related_name='types', verbose_name='Категории оборудования')
 
     def __str__(self):
         return self.name
@@ -194,16 +167,9 @@ class Types(models.Model):
 
 class Devices(models.Model):
     number = models.CharField(max_length=50, verbose_name='Номер')
-    category = models.ForeignKey(
-        'Categories',
-        on_delete=models.CASCADE,
-        verbose_name='Категория оборудования'
-    )
-    office = models.ForeignKey(
-        'Offices',
-        on_delete=models.CASCADE,
-        verbose_name='Кабинет'
-    )
+    category = models.ForeignKey(Categories, on_delete=models.CASCADE, verbose_name='Категория оборудования')
+    office = models.ForeignKey(Offices, on_delete=models.CASCADE, verbose_name='Кабинет')
+    year_started = models.PositiveIntegerField(blank=True, null=True, verbose_name='Год начала работы')
 
     def __str__(self):
         return f'{self.category.name} {self.number}'
@@ -215,12 +181,9 @@ class Devices(models.Model):
 
 class Components(models.Model):
     model = models.CharField(max_length=255, verbose_name='Модель')
-    type = models.ForeignKey(
-        'Types',
-        on_delete=models.CASCADE,
-        verbose_name='Тип'
-    )
+    type = models.ForeignKey(Types, on_delete=models.CASCADE, verbose_name='Тип')
     counts = models.IntegerField(verbose_name='Количество на складе')
+    devices = models.ManyToManyField(Devices, blank=True, verbose_name='Устройства, в которых используется')
 
     def __str__(self):
         return self.model
@@ -231,13 +194,62 @@ class Components(models.Model):
 
 
 class ComponentTransaction(models.Model):
-    component = models.ForeignKey('Components', on_delete=models.CASCADE, verbose_name='Комплектующее')
-    user = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='Кто взял')
+    component = models.ForeignKey(Components, on_delete=models.CASCADE, verbose_name='Комплектующее')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Кто взял')
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     taken_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата взятия')
-    comment = models.CharField(max_length=255, blank=True, verbose_name='Примечание (например, для какой заявки)')
+    comment = models.CharField(max_length=255, blank=True, verbose_name='Примечание')
 
     class Meta:
         verbose_name = 'Транзакция комплектующего'
         verbose_name_plural = 'Транзакции комплектующих'
 
+
+# ---------- НОВЫЕ МОДЕЛИ ----------
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Кому')
+    message = models.CharField(max_length=500, verbose_name='Текст уведомления')
+    link = models.CharField(max_length=500, blank=True, verbose_name='Ссылка для перехода')
+    is_read = models.BooleanField(default=False, verbose_name='Прочитано')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+
+    class Meta:
+        verbose_name = 'Уведомление'
+        verbose_name_plural = 'Уведомления'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.message[:50]
+
+class Chat(models.Model):
+    bid = models.OneToOneField(Bids, on_delete=models.CASCADE, verbose_name='Заявка')
+    participants = models.ManyToManyField(User, verbose_name='Участники')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+
+    def __str__(self):
+        return f'Чат заявки №{self.bid.id}'
+
+    class Meta:
+        verbose_name = 'Чат'
+        verbose_name_plural = 'Чаты'
+
+class Message(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, verbose_name='Чат')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Отправитель')
+    text = models.TextField(verbose_name='Текст сообщения')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Время отправки')
+
+    class Meta:
+        verbose_name = 'Сообщение'
+        verbose_name_plural = 'Сообщения'
+        ordering = ['created_at']
+
+class ChatParticipant(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='participations')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_read_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    class Meta:
+        unique_together = ('chat', 'user')
+        verbose_name = 'Участник чата'
+        verbose_name_plural = 'Участники чатов'

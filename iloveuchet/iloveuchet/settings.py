@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@5yk5(feyf6z1vb)hob^!aevm7aelyt-zdc&6wspal)j(i!fd8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -87,31 +87,31 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'diplom_db',
-    #     'USER': 'diplom_user',
-    #     'PASSWORD': '1234',
-    #     'HOST': 'localhost',
-    #     'PORT': '5432',
-    # },
-    # 'supabase': dj_database_url.config(
-    #     default=os.environ.get('DATABASE_URL'),
-    #     conn_max_age=600,
-    #     ssl_require=True
-    # )
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    ) if os.environ.get('DATABASE_URL') else {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'diplom_db',
         'USER': 'diplom_user',
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '5432',
-    }
+    },
+    # 'supabase': dj_database_url.config(
+    #     default=os.environ.get('DATABASE_URL'),
+    #     conn_max_age=600,
+    #     ssl_require=True
+    # )
+    # 'default': dj_database_url.config(
+    #     default=os.environ.get('DATABASE_URL'),
+    #     conn_max_age=600,
+    #     ssl_require=True
+    # ) if os.environ.get('DATABASE_URL') else {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'diplom_db',
+    #     'USER': 'diplom_user',
+    #     'PASSWORD': '1234',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # }
 }
 
 

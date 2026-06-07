@@ -1,12 +1,13 @@
 {% extends 'uchet/base.html' %}
 
 {% block content %}
-    <div>
-        <form method="post" class="main" action="">
-            {% csrf_token %}
-            <h1>Новая заявка</h1>
-            {{ form.problem_text }}
-            <button type="submit">Создать</button>
-        </form>
-    </div>
+<div style="max-width: 600px; margin: 0 auto;">
+    <a href="{% url 'all_bids' %}" class="icon-btn" style="margin-bottom: 16px;">←</a>
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+        <h1>Новая заявка</h1>
+        {{ form.problem_text }}
+        <button type="submit" class="btn-primary">Создать</button>
+    </form>
+</div>
 {% endblock %}

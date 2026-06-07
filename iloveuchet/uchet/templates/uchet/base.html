@@ -1,18 +1,23 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link type="text/css" rel="stylesheet" href="{% static 'uchet/css/style.css' %}">
-    <title>{{title}}</title>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{% static 'uchet/css/style.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-   <header>
-        <div class="header-top">
-            <button class="menu-toggle" id="menuToggle" aria-label="Меню">☰</button>
-        </div>
+    <header id="siteHeader">
+        <a href="/" class="brand">ILoveUchet</a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Меню">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
         <nav class="nav-links" id="navLinks">
             {% block main_menu %}
                 {% if menu %}
@@ -21,45 +26,154 @@
                     {% endfor %}
                 {% endif %}
                 {% if user.is_authenticated %}
+                    <span class="header-divider">|</span>
+                    <span class="user-name">{{ user.lastname }} {{ user.firstname }} {{ user.middlename|default:"" }}</span>
+
+                    <!-- Колокольчик уведомлений -->
+                    <div class="notifications-bell" id="notifications-bell">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="badge" id="notification-badge" style="display: none;">0</span>
+                        <div class="notifications-dropdown" id="notifications-dropdown">
+                            <div class="notifications-list" id="notifications-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Ссылка на чат -->
+                    <a href="{% url 'chat_list' %}" class="chat-link" id="chat-link">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span class="badge" id="chat-badge" style="display: none;">0</span>
+                    </a>
+
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit">Выйти</button>
+                        <button type="submit" class="icon-btn" title="Выйти">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="9" y1="12" x2="21" y2="12"/>
+                            </svg>
+                        </button>
                     </form>
                 {% else %}
                     {% if not hide_login_button %}
-                    <a href="{% url 'login' %}" class="btn-login">Войти</a>
+                    <a href="{% url 'login' %}" class="icon-btn" title="Войти">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                            <polyline points="10 17 15 12 10 7"/>
+                            <line x1="15" y1="12" x2="3" y2="12"/>
+                        </svg>
+                    </a>
                     {% endif %}
                 {% endif %}
             {% endblock %}
         </nav>
     </header>
-    <div class="main">
-        <h1>{{heading}}</h1>
-         {% if messages %}
+
+    <main class="content">
+        {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
-                        {{ message }}</li>
+                    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
-        {% block content %}
-        {% endblock %}
-    </div>
+        {% block content %}{% endblock %}
+    </main>
+
     {% if not hide_footer %}
     <footer>
-        <p>Контакты milana10004@gmail.com</p>
         <p>© 2026 Хабирова Милана. Все права защищены.</p>
     </footer>
     {% endif %}
+
     <script>
-    document.addEventListener("DOMContentLoaded",()=>{
-        const btn = document.getElementById("menuToggle");
-        const menu = document.getElementById("navLinks");
-        btn.addEventListener("click",()=>{
-            menu.classList.toggle("show");
+        // Мобильное меню
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        menuToggle.addEventListener('click', () => navLinks.classList.toggle('show'));
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('siteHeader').contains(e.target) && navLinks.classList.contains('show')) {
+                navLinks.classList.remove('show');
+            }
         });
-    });
+
+        // Тень при прокрутке
+        const siteHeader = document.getElementById('siteHeader');
+        window.addEventListener('scroll', () => siteHeader.classList.toggle('scrolled', window.scrollY > 10));
+
+        // === Уведомления ===
+        function loadNotifications() {
+            fetch('/notifications/')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('notifications-list');
+                    if (data.notifications.length === 0) {
+                        list.innerHTML = '<div class="notification-item" style="color: var(--text);">Уведомлений нет</div>';
+                    } else {
+                        list.innerHTML = data.notifications.map(n => `
+                            <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" onclick="openNotif('${n.link}', ${n.id})">
+                                ${n.message}
+                                <div style="font-size:0.8em; color:gray;">${n.created_at}</div>
+                            </div>
+                        `).join('');
+                    }
+                    const badge = document.getElementById('notification-badge');
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                });
+        }
+
+        function openNotif(link, id) {
+            fetch('/notifications/read/' + id + '/', { 
+                method: 'POST', 
+                headers: {'X-CSRFToken': '{{ csrf_token }}'} 
+            }).then(() => {
+                if (link) window.location.href = link;
+            });
+        }
+
+        document.getElementById('notifications-bell').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('notifications-dropdown').classList.toggle('show');
+            loadNotifications();
+        });
+        document.addEventListener('click', function(e) {
+            if (!document.getElementById('notifications-bell').contains(e.target)) {
+                document.getElementById('notifications-dropdown').classList.remove('show');
+            }
+        });
+
+        // === Чат: счётчик непрочитанных ===
+        function updateChatBadge() {
+            fetch('/chats/unread-count/')
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('chat-badge');
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.display;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Ошибка загрузки счётчика чата:', err));
+        }
+
+        // Первичная загрузка и интервалы
+        loadNotifications();
+        updateChatBadge();
+        setInterval(loadNotifications, 60000);
+        setInterval(updateChatBadge, 30000);
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

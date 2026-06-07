@@ -1,0 +1,196 @@
+{% extends 'uchet/base.html' %}
+
+{% block content %}
+<div class="top-bar">
+    <form method="get" action="" class="search-form">
+        <div class="search-wrapper">
+            <input type="text" name="search" placeholder="Поиск..."
+                   value="{{ request.GET.search|default:'' }}" id="search-input">
+            <button type="button" class="search-clear" aria-label="Очистить">✕</button>
+            <button type="submit" class="search-submit">Найти</button>
+        </div>
+    </form>
+</div>
+
+<form id="filter-form" method="get" action="">
+    <input type="hidden" name="search" value="{{ request.GET.search|default:'' }}">
+    <input type="hidden" name="type" value="{{ request.GET.type|default:'' }}" id="type-input">
+    <input type="hidden" name="qty_from" value="{{ request.GET.qty_from|default:'' }}" id="qty-from-input">
+    <input type="hidden" name="qty_to" value="{{ request.GET.qty_to|default:'' }}" id="qty-to-input">
+    <input type="hidden" name="date_from" value="{{ request.GET.date_from|default:'' }}" id="date-from-input">
+    <input type="hidden" name="date_to" value="{{ request.GET.date_to|default:'' }}" id="date-to-input">
+</form>
+
+<table class="styled-table">
+    <thead>
+        <tr>
+            <th>Комплектующее</th>
+            <th>Тип
+                <span class="filter-icon" data-filter="type">▼</span>
+                <div class="filter-dropdown" id="dropdown-type">
+                    <div class="dropdown-content">
+                        <a href="#" onclick="setType('')">Все</a>
+                        {% for t in types %}
+                            <a href="#" onclick="setType('{{ t.id }}')">{{ t.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </th>
+            <th>Кто взял</th>
+            <th>Количество
+                <span class="filter-icon" data-filter="qty">▼</span>
+                <div class="filter-dropdown" id="dropdown-qty">
+                    <div class="dropdown-content">
+                        <label>от <input type="number" id="qty-from" min="0"></label>
+                        <label>до <input type="number" id="qty-to" min="0"></label>
+                        <button type="button" class="btn-sm btn-primary" onclick="applyQtyFilter()">Применить</button>
+                        <button type="button" class="btn-sm btn-secondary" onclick="clearQtyFilter()">Сбросить</button>
+                    </div>
+                </div>
+            </th>
+            <th>Дата
+                <span class="filter-icon" data-filter="date">▼</span>
+                <div class="filter-dropdown" id="dropdown-date">
+                    <div class="dropdown-content">
+                        <label>от <input type="date" id="date-from"></label>
+                        <label>до <input type="date" id="date-to"></label>
+                        <button type="button" class="btn-sm btn-primary" onclick="applyDateFilter()">Применить</button>
+                        <button type="button" class="btn-sm btn-secondary" onclick="clearDateFilter()">Сбросить</button>
+                    </div>
+                </div>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in transactions %}
+        <tr>
+            <td>{{ t.component.model }}</td>
+            <td>{{ t.component.type.name }}</td>
+            <td>{{ t.user.lastname }} {{ t.user.firstname }} {{ t.user.middlename|default:"" }}</td>
+            <td>{{ t.quantity }}</td>
+            <td>{{ t.taken_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align: center;">Нет списаний</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if transactions.paginator.num_pages > 1 %}
+<div class="pagination">
+    {% if transactions.has_previous %}
+        <a href="?page={{ transactions.previous_page_number }}&{{ base_params }}" class="btn-primary">← Предыдущая</a>
+    {% endif %}
+    <span class="current-page">Страница {{ transactions.number }} из {{ transactions.paginator.num_pages }}</span>
+    {% if transactions.has_next %}
+        <a href="?page={{ transactions.next_page_number }}&{{ base_params }}" class="btn-primary">Следующая →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // === ПОИСК ===
+    (function() {
+        const searchWrapper = document.querySelector('.search-wrapper');
+        const searchInput = document.getElementById('search-input');
+        const clearBtn = document.querySelector('.search-clear');
+        const submitBtn = document.querySelector('.search-submit');
+        if (!searchWrapper || !searchInput) return;
+
+        searchInput.addEventListener('focus', () => searchWrapper.classList.add('focused'));
+        searchInput.addEventListener('blur', () => {
+            if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                searchInput.value = '';
+                searchInput.focus();
+                searchInput.dispatchEvent(new Event('input'));
+                if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+            });
+        }
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.search-form').submit();
+            });
+        }
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submitBtn?.click(); }
+        });
+    })();
+
+    // === ФИЛЬТРЫ ===
+    let activeDropdown = null;
+
+    document.querySelectorAll('.filter-icon').forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const filter = this.dataset.filter;
+            const dropdown = document.getElementById('dropdown-' + filter);
+            if (!dropdown) return;
+            if (activeDropdown && activeDropdown !== dropdown) {
+                activeDropdown.classList.remove('show');
+            }
+            const isCurrentlyShown = dropdown.classList.contains('show');
+            dropdown.classList.toggle('show', !isCurrentlyShown);
+            activeDropdown = dropdown.classList.contains('show') ? dropdown : null;
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest('.filter-icon')) {
+            activeDropdown.classList.remove('show');
+            activeDropdown = null;
+        }
+    });
+
+    document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    // Установка фильтра типа
+    window.setType = function(id) {
+        document.getElementById('type-input').value = id;
+        document.getElementById('filter-form').submit();
+    };
+
+    // Фильтр количества
+    window.applyQtyFilter = function() {
+        document.getElementById('qty-from-input').value = document.getElementById('qty-from').value;
+        document.getElementById('qty-to-input').value = document.getElementById('qty-to').value;
+        document.getElementById('filter-form').submit();
+    };
+    window.clearQtyFilter = function() {
+        document.getElementById('qty-from').value = '';
+        document.getElementById('qty-to').value = '';
+        applyQtyFilter();
+    };
+
+    // Фильтр даты
+    window.applyDateFilter = function() {
+        document.getElementById('date-from-input').value = document.getElementById('date-from').value;
+        document.getElementById('date-to-input').value = document.getElementById('date-to').value;
+        document.getElementById('filter-form').submit();
+    };
+    window.clearDateFilter = function() {
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        applyDateFilter();
+    };
+
+    // Заполнение полей из GET-параметров
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('qty_from')) document.getElementById('qty-from').value = params.get('qty_from');
+        if (params.get('qty_to')) document.getElementById('qty-to').value = params.get('qty_to');
+        if (params.get('date_from')) document.getElementById('date-from').value = params.get('date_from');
+        if (params.get('date_to')) document.getElementById('date-to').value = params.get('date_to');
+    })();
+</script>
+{% endblock %}

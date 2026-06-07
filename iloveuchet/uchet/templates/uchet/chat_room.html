@@ -1,0 +1,42 @@
+{% extends 'uchet/base.html' %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-sidebar">
+        <h3>Мои чаты</h3>
+        <ul>
+            {% for part in request.user.chatparticipant_set.all %}
+                <li class="{% if part.chat.id == chat.id %}active{% endif %}">
+                    <a href="{% url 'chat_room' part.chat.id %}">
+                        Заявка №{{ part.chat.bid.id }}
+                        ({{ part.chat.bid.employee.lastname }} {{ part.chat.bid.employee.firstname }} {{ part.chat.bid.employee.middlename|default:"" }})
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="chat-messages">
+        <h4>Чат заявки №{{ chat.bid.id }} ({{ chat.bid.employee.lastname }} {{ chat.bid.employee.firstname }} {{ chat.bid.employee.middlename|default:"" }})</h4>
+        <div class="messages-list" id="messages-list">
+            {% for msg in chat_messages %}                     <!-- изменено -->
+                <div class="message {% if msg.sender == request.user %}own{% endif %}">
+                    <div class="message-sender">{{ msg.sender.lastname }} {{ msg.sender.firstname }} {{ msg.sender.middlename|default:"" }}</div>
+                    <div class="message-text">{{ msg.text }}</div>
+                    <div class="message-time">{{ msg.created_at|date:"H:i" }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <form method="post" class="message-form">
+            {% csrf_token %}
+            <input type="text" name="text" placeholder="Введите сообщение..." autofocus>
+            <button type="submit" class="btn-primary">Отправить</button>
+        </form>
+    </div>
+</div>
+<script>
+    const msgList = document.getElementById('messages-list');
+    if (msgList) {
+        msgList.scrollTop = msgList.scrollHeight;
+    }
+</script>
+{% endblock %}

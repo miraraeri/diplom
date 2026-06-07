@@ -19,5 +19,14 @@ urlpatterns = [
     path('bid/<int:bid_id>/edit-resolution/', edit_resolution, name='edit_resolution'),
     path('statistics/', statistics_view, name='statistics'),
     path('export/bids/', export_bids_csv, name='export_bids_csv'),
-    path('export/transactions/', export_transactions_csv, name='export_transactions_csv')
+    path('export/transactions/', export_transactions_csv, name='export_transactions_csv'),
+
+    # Новые маршруты
+    path('transactions/', transaction_history, name='transaction_history'),
+    path('notifications/', get_notifications, name='get_notifications'),
+    path('notifications/read/<int:notif_id>/', mark_notification_read, name='mark_notification_read'),
+    path('chats/', chat_list, name='chat_list'),
+    path('chats/<int:chat_id>/', chat_room, name='chat_room'),
+    path('chats/unread-count/', get_unread_chat_count, name='get_unread_chat_count'),
+    path('about/', about, name='about'),
 ]

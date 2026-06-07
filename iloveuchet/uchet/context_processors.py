@@ -15,6 +15,6 @@ def menu(request):
 
         menu_items.append({'title': 'Заявки', 'url_name': 'all_bids'})
 
-    menu_items.append({'title': 'Инструкция', 'url_name': 'instruction'},)
+    menu_items.append({'title': 'О системе', 'url_name': 'instruction'},)
 
     return {'menu': menu_items}

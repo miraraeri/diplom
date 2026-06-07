@@ -1,0 +1,26 @@
+{% extends 'uchet/base.html' %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-sidebar">
+        <h3>Мои чаты</h3>
+        <ul>
+            {% for item in chats_with_unread %}
+                <li class="{% if item.chat.id == current_chat_id %}active{% endif %}">
+                    <a href="{% url 'chat_room' item.chat.id %}">
+                        Заявка №{{ item.chat.bid.id }} ({{ item.chat.bid.employee.lastname }} {{ item.chat.bid.employee.firstname }} {{ item.chat.bid.employee.middlename|default:"" }})
+                        {% if item.unread > 0 %}
+                            <span class="badge">{{ item.unread }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+            {% empty %}
+                <li>Нет активных чатов</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="chat-main">
+        <p>Выберите чат слева</p>
+    </div>
+</div>
+{% endblock %}

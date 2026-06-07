@@ -1,21 +1,21 @@
 {% extends 'uchet/base.html' %}
 
 {% block content %}
-    <div>
-        <form method="post" class="main" action="">
-            {% csrf_token %}
-            <h1>Авторизация</h1>
-            {{ form.contacts }}
-            {{ form.password }}
-            <button type="submit">Войти</button>
-            <h2>Нет аккаунта? Обратитесь к администратору</h2>
-            {% if form.non_field_errors %}
-                <div class="errors">
-                    {% for error in form.non_field_errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </form>
-    </div>
+<div style="max-width: 400px; margin: 40px auto;">
+    <form method="post" action="" style="display: flex; flex-direction: column; gap: 16px;">
+        {% csrf_token %}
+        <h1 style="text-align: center;">Авторизация</h1>
+        {{ form.contacts }}
+        {{ form.password }}
+        <button type="submit" class="btn-primary">Войти</button>
+        <p style="text-align: center;">Нет аккаунта? Обратитесь к администратору</p>
+        {% if form.non_field_errors %}
+            <div class="errors">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+</div>
 {% endblock %}

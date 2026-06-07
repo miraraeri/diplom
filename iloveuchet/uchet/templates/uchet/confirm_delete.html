@@ -1,14 +1,16 @@
 {% extends 'uchet/base.html' %}
 
 {% block content %}
-<div>
-    <form class="main" method="post" action="{% url 'delete_bid' bid.id %}">
+<div style="max-width: 500px; margin: 0 auto; text-align: center;">
     <h1>Подтверждение удаления</h1>
     <p>Вы действительно хотите удалить заявку №{{ bid.id }}?</p>
-    <p>Описание: {{ bid.problem_text }}</p>
-        {% csrf_token %}
-        <button type="submit">Да, удалить</button>
-        <a href="{% url 'show_bid' bid.id %}">Отмена</a>
-    </form>
+    <p><em>{{ bid.problem_text }}</em></p>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+        <form method="post" action="{% url 'delete_bid' bid.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary">Да, удалить</button>
+        </form>
+        <a href="{% url 'show_bid' bid.id %}" class="btn-secondary">Отмена</a>
+    </div>
 </div>
 {% endblock %}

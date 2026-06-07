@@ -1,45 +1,194 @@
 {% extends 'uchet/base.html' %}
 
 {% block content %}
-    <div class="filters">
-        <form method="get" action="">
-            {{ form.search }}
-            {{ form.hardware }}
-            <button type="submit">Найти</button>
+<div class="top-bar">
+    <form method="get" action="" class="search-form">
+        <div class="search-wrapper">
+            <input type="text" name="search" placeholder="Поиск..."
+                   value="{{ request.GET.search|default:'' }}" id="search-input">
+            <button type="button" class="search-clear" aria-label="Очистить">✕</button>
+            <button type="submit" class="search-submit">Найти</button>
+        </div>
+    </form>
+    {% if is_admin %}
+    <a href="{% url 'transaction_history' %}" class="btn-primary" style="margin-left: auto;">Просмотреть списания</a>
+    {% endif %}
+</div>
+
+<form id="filter-form" method="get" action="">
+    <input type="hidden" name="search" value="{{ request.GET.search|default:'' }}">
+    <input type="hidden" name="type" value="{{ request.GET.type|default:'' }}" id="type-input">
+    <input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}" id="sort-input">
+</form>
+
+<table class="styled-table" id="components-table">
+    <thead>
+        <tr>
+            <th>Модель</th>
+            <th>Тип
+                <span class="filter-icon" data-filter="type">▼</span>
+                <div class="filter-dropdown" id="dropdown-type">
+                    <div class="dropdown-content">
+                        <a href="#" onclick="setType('')">Все</a>
+                        {% for t in types %}
+                            <a href="#" onclick="setType('{{ t.id }}')">{{ t.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </th>
+            <th>Количество на складе
+                <span class="filter-icon" data-filter="sort">▼</span>
+                <div class="filter-dropdown" id="dropdown-sort">
+                    <div class="dropdown-content">
+                        <a href="#" onclick="setSort('')">Без сортировки</a>
+                        <a href="#" onclick="setSort('asc')">По возрастанию</a>
+                        <a href="#" onclick="setSort('desc')">По убыванию</a>
+                    </div>
+                </div>
+            </th>
+            <th>Списание со склада</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if components %}
+            {% for c in components %}
+            <tr>
+                <td data-label="Модель">{{ c.model }}</td>
+                <td data-label="Тип">{{ c.type.name }}</td>
+                <td data-label="Количество">{{ c.counts }}</td>
+                <td data-label="Списание">
+                    {% if c.counts == 0 %}
+                        <span class="text-muted">Нет на складе</span>
+                    {% else %}
+                        <button type="button" class="btn-primary" onclick="openWriteOff({{ c.id }})">Списать</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Комплектующих не найдено</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+{% if components.paginator.num_pages > 1 %}
+<div class="pagination">
+    {% if components.has_previous %}
+        <a href="?page={{ components.previous_page_number }}&{{ base_params }}" class="btn-primary">← Предыдущая</a>
+    {% endif %}
+    <span class="current-page">Страница {{ components.number }} из {{ components.paginator.num_pages }}</span>
+    {% if components.has_next %}
+        <a href="?page={{ components.next_page_number }}&{{ base_params }}" class="btn-primary">Следующая →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Модальное окно списания -->
+<div id="writeoff-modal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeWriteOff()">&times;</span>
+        <h3>Списание комплектующего</h3>
+        <form id="writeoff-form" method="post" action="">
+            {% csrf_token %}
+            <input type="number" name="quantity" min="1" placeholder="Количество" required class="form-control" style="width: 100%;">
+            <button type="submit" class="btn-primary" style="margin-top: 15px;">Списать</button>
         </form>
     </div>
-    <div>
-        {% for c in components%}
-        <div class="element">
-            <p>{{c.type.name}} {{c.model}}</p>
-            <p><strong>Входит в устройства: </strong></p>
-            {% for cat in c.type.categories.all %}
-            <p>{{cat.name}}</p>
-            {% endfor %}
-            <p><strong>Количество на складе:</strong> {{c.counts}}</p>
-            <form method="post" action="{% url 'remove_from_storage' c.id%}">
-                {% csrf_token %}
-                 <input type="number" name="quantity" min="0" placeholder="Кол-во">
-                {% if c.counts == 0 %}
-                    <button type="submit" disabled>Нет на складе</button>
-                {% else %}
-                    <button type="submit">Убрать из склада</button>
-                {% endif %}
-            </form>
-        </div>
-        {% endfor %}
-    </div>
-     {% if bids.paginator.num_pages > 1 %}
-        <div class="pagination">
-            {% if bids.has_previous %}
-                <a href="?page={{ bids.previous_page_number }}&{{ base_params }}" class="btn">← Предыдущая</a>
-            {% endif %}
+</div>
 
-            <span class="current-page">Страница {{ bids.number }} из {{ bids.paginator.num_pages }}</span>
+<script>
+    // === ПОИСК ===
+    (function() {
+        const searchWrapper = document.querySelector('.search-wrapper');
+        const searchInput = document.getElementById('search-input');
+        const clearBtn = document.querySelector('.search-clear');
+        const submitBtn = document.querySelector('.search-submit');
+        if (!searchWrapper || !searchInput) return;
 
-            {% if bids.has_next %}
-                <a href="?page={{ bids.next_page_number }}&{{ base_params }}" class="btn">Следующая →</a>
-            {% endif %}
-        </div>
-        {% endif %}
+        searchInput.addEventListener('focus', () => searchWrapper.classList.add('focused'));
+        searchInput.addEventListener('blur', () => {
+            if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                searchInput.value = '';
+                searchInput.focus();
+                searchInput.dispatchEvent(new Event('input'));
+                if (!searchInput.value.trim()) searchWrapper.classList.remove('focused');
+            });
+        }
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.search-form').submit();
+            });
+        }
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submitBtn?.click(); }
+        });
+    })();
+
+    // === ФИЛЬТРЫ ===
+    let activeDropdown = null;
+
+    document.querySelectorAll('.filter-icon').forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const filter = this.dataset.filter;
+            const dropdown = document.getElementById('dropdown-' + filter);
+            if (!dropdown) return;
+            if (activeDropdown && activeDropdown !== dropdown) {
+                activeDropdown.classList.remove('show');
+            }
+            const isCurrentlyShown = dropdown.classList.contains('show');
+            dropdown.classList.toggle('show', !isCurrentlyShown);
+            activeDropdown = dropdown.classList.contains('show') ? dropdown : null;
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest('.filter-icon')) {
+            activeDropdown.classList.remove('show');
+            activeDropdown = null;
+        }
+    });
+
+    document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    window.setType = function(typeId) {
+        document.getElementById('type-input').value = typeId;
+        document.getElementById('filter-form').submit();
+    };
+
+    window.setSort = function(val) {
+        document.getElementById('sort-input').value = val;
+        document.getElementById('filter-form').submit();
+    };
+
+    // === МОДАЛЬНОЕ ОКНО ===
+    const modal = document.getElementById('writeoff-modal');
+    const writeoffForm = document.getElementById('writeoff-form');
+
+    window.openWriteOff = function(componentId) {
+        writeoffForm.action = "{% url 'remove_from_storage' 0 %}".replace('0', componentId);
+        modal.style.display = 'flex';
+    };
+
+    window.closeWriteOff = function() {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeWriteOff();
+        }
+    };
+</script>
 {% endblock %}
