@@ -30,7 +30,12 @@
                     <button type="submit" name="status_btn" class="btn-primary">{{ btn_name }}</button>
                 </form>
             {% endif %}
-            <a href="{% url 'edit_resolution' bid.id %}" class="btn-secondary">Добавить решение</a>
+        {% endif %}
+
+        {% if is_sysadmin and not is_owner and bid.status == 'done' %}
+            <a href="{% url 'edit_resolution' bid.id %}" class="btn-secondary">
+                {% if bid.resolution %}Редактировать решение{% else %}Добавить решение{% endif %}
+            </a>
         {% endif %}
 
         {% if bid.resolution and is_sysadmin %}

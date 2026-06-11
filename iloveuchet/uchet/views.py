@@ -1,15 +1,15 @@
 import csv
 
-from django.contrib.auth import authenticate, login          # <-- обязательно
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.core.exceptions import PermissionDenied          # <-- добавьте, если используется raise PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Count, Sum
 from django.db.models.functions import TruncDate
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse                              # <-- обязательно
+from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 
@@ -18,7 +18,6 @@ from .forms import *
 from .utils import *
 
 
-# Вспомогательная функция создания уведомления
 def create_notification(user, message, link=''):
     Notification.objects.create(user=user, message=message, link=link)
 
@@ -59,7 +58,6 @@ def all_bids(request):
     else:
         bids = Bids.objects.filter(employee=user)
 
-    # Поиск
     search = request.GET.get('search')
     if search:
         bids = bids.filter(
@@ -72,12 +70,10 @@ def all_bids(request):
             Q(accepted_by__middlename__icontains=search)
         )
 
-    # Фильтр по статусу
     status = request.GET.get('status')
     if status:
         bids = bids.filter(status=status)
 
-    # Фильтр по дате создания
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     if date_from:
@@ -85,7 +81,6 @@ def all_bids(request):
     if date_to:
         bids = bids.filter(time_create__date__lte=date_to)
 
-    # Фильтр по дате изменения
     update_from = request.GET.get('update_from')
     update_to = request.GET.get('update_to')
     if update_from:
@@ -145,7 +140,6 @@ def show_bid(request, bid_id):
                 bid.accepted_by = user
                 bid.save()
 
-                # Создаём или получаем чат
                 chat, _ = Chat.objects.get_or_create(bid=bid)
                 chat.participants.add(bid.employee)
                 chat.participants.add(user)
@@ -173,7 +167,6 @@ def show_bid(request, bid_id):
 
     employee_fullname = f'{bid.employee.lastname} {bid.employee.firstname} {bid.employee.middlename or ""}'
 
-    # === Гарантируем существование чата ===
     chat = Chat.objects.filter(bid=bid).first()
     if not chat:
         chat = Chat.objects.create(bid=bid)
@@ -252,7 +245,7 @@ def create_bid(request):
             bid.status = 'new'
             bid.employee = request.user
             bid.save()
-            # Создаём чат и добавляем автора
+
             chat = Chat.objects.create(bid=bid)
             chat.participants.add(request.user)
             ChatParticipant.objects.create(chat=chat, user=request.user)
@@ -349,7 +342,7 @@ def remove_from_storage(request, component_id):
                     quantity=counts,
                     comment=request.POST.get('comment', '')
                 )
-                # Уведомление для администраторов
+
                 admins = User.objects.filter(role__name='Администратор')
                 for admin in admins:
                     create_notification(
@@ -365,7 +358,6 @@ def remove_from_storage(request, component_id):
     return redirect('all_components')
 
 
-# ================== СТАТИСТИКА ==================
 @login_required()
 @role_required(['Администратор', 'Системный администратор'])
 def statistics_view(request):
@@ -450,7 +442,6 @@ def statistics_view(request):
     total_components = Components.objects.aggregate(total=Sum('counts'))['total'] or 0
     low_stock_components = Components.objects.filter(counts__lt=5).count()
 
-    # ------------------- РАЗДЕЛ ДЛЯ СИСТЕМНОГО АДМИНИСТРАТОРА -------------------
     if user_role == 'Системный администратор':
         my_accepted_count = Bids.objects.filter(accepted_by=user).count()
         my_completed_count = Bids.objects.filter(completed_by=user).count()
@@ -461,7 +452,6 @@ def statistics_view(request):
                               .annotate(cnt=Count('id'))
                               .order_by('-cnt')[:5])
 
-        # 1. Динамика принятых и завершённых за последние 30 дней (для сисадмина)
         my_accepted_qs = Bids.objects.filter(
             accepted_by=user,
             accepted_at__gte=last_30_days,
@@ -478,7 +468,6 @@ def statistics_view(request):
         my_completed_dict = {item['date'].strftime('%Y-%m-%d'): item['cnt'] for item in my_completed_qs}
         my_completed_counts = [my_completed_dict.get(d.strftime('%Y-%m-%d'), 0) for d in dates]
 
-        # 2. Статусы заявок, которые обрабатывал текущий сисадмин (принимал или завершал)
         my_status_stats = {
             'in_progress': handled_bids.filter(status='in_progress').count(),
             'done': handled_bids.filter(status='done').count(),
@@ -493,7 +482,6 @@ def statistics_view(request):
             f"Завершённые ({my_done_percent}%)"
         ]
 
-        # 3. Топ-5 сотрудников, для которых сисадмин принимал заявки
         my_top_employees = Bids.objects.filter(accepted_by=user).values(
             'employee__lastname', 'employee__firstname'
         ).annotate(cnt=Count('id')).order_by('-cnt')[:5]
@@ -505,7 +493,6 @@ def statistics_view(request):
             'my_accepted_count': my_accepted_count,
             'my_completed_count': my_completed_count,
             'bids_by_department': bids_by_department,
-            # Новые данные для графиков
             'my_chart_labels': chart_labels,
             'my_accepted_counts': my_accepted_counts,
             'my_completed_counts': my_completed_counts,
@@ -515,7 +502,6 @@ def statistics_view(request):
         }
         return render(request, 'uchet/statistics.html', context)
 
-    # ------------------- РАЗДЕЛ ДЛЯ АДМИНИСТРАТОРА -------------------
     context = {
         'title': 'Статистика',
         'heading': 'Статистика и отчёты',
@@ -540,7 +526,6 @@ def statistics_view(request):
     return render(request, 'uchet/statistics.html', context)
 
 
-# ================== НОВЫЕ ПРЕДСТАВЛЕНИЯ ==================
 @login_required
 @role_required(['Администратор'])
 def transaction_history(request):
@@ -670,18 +655,17 @@ def chat_room(request, chat_id):
             Message.objects.create(chat=chat, sender=user, text=text)
         return redirect('chat_room', chat_id=chat.id)
 
-    # Пометить как прочитанное
     last_msg = chat.message_set.last()
     if last_msg:
         participation = chat.participations.get(user=user)
         participation.last_read_message = last_msg
         participation.save()
 
-    chat_messages = chat.message_set.order_by('created_at')   # ← переименовано
+    chat_messages = chat.message_set.order_by('created_at')
     context = {
         'title': f'Чат заявки №{chat.bid.id}',
         'chat': chat,
-        'chat_messages': chat_messages,                       # ← новое имя
+        'chat_messages': chat_messages,
     }
     return render(request, 'uchet/chat_room.html', context)
 
@@ -694,22 +678,51 @@ def about(request):
     return render(request, 'uchet/about.html', context)
 
 
-# Экспорты
 def export_bids_csv(request):
+    user = request.user
+    user_role = user.role.name if hasattr(user, 'role') else None
+
+    if user_role not in ['Администратор', 'Системный администратор']:
+        raise PermissionDenied
+
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="bids_export.csv"'
     response.write('\ufeff')
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Проблема', 'Сотрудник', 'Статус', 'Создано', 'Обновлено', 'Решение'])
-    bids = Bids.objects.select_related('employee')
+    writer.writerow([
+        'ID', 'Проблема', 'Сотрудник', 'Статус',
+        'Создано', 'Обновлено', 'Решение',
+        'Принял', 'Дата принятия', 'Завершил', 'Дата завершения'
+    ])
+
+    bids = Bids.objects.select_related('employee', 'accepted_by', 'completed_by')
+
+    if user_role == 'Системный администратор':
+        bids = bids.filter(Q(accepted_by=user) | Q(completed_by=user))
+
     for b in bids:
+        accepted_by_full = ''
+        if b.accepted_by:
+            accepted_by_full = f"{b.accepted_by.lastname} {b.accepted_by.firstname} {b.accepted_by.middlename or ''}".strip()
+        accepted_at_str = b.accepted_at.strftime('%Y-%m-%d %H:%M') if b.accepted_at else ''
+
+        completed_by_full = ''
+        if b.completed_by:
+            completed_by_full = f"{b.completed_by.lastname} {b.completed_by.firstname} {b.completed_by.middlename or ''}".strip()
+        completed_at_str = b.completed_at.strftime('%Y-%m-%d %H:%M') if b.completed_at else ''
+
         writer.writerow([
-            b.id, b.problem_text,
+            b.id,
+            b.problem_text,
             f"{b.employee.lastname} {b.employee.firstname} {b.employee.middlename or ''}",
             b.get_status_display(),
             b.time_create.strftime('%Y-%m-%d %H:%M'),
             b.time_update.strftime('%Y-%m-%d %H:%M'),
-            b.resolution or ''
+            b.resolution or '',
+            accepted_by_full,
+            accepted_at_str,
+            completed_by_full,
+            completed_at_str,
         ])
     return response
 
@@ -721,15 +734,16 @@ def export_transactions_csv(request):
     response['Content-Disposition'] = 'attachment; filename="components_transactions.csv"'
     response.write('\ufeff')
     writer = csv.writer(response)
-    writer.writerow(['Комплектующее', 'Взял(а)', 'Количество', 'Дата', 'Примечание'])
-    transactions = ComponentTransaction.objects.select_related('component', 'user')
+    writer.writerow(['Комплектующее', 'Тип', 'Взял(а)', 'Количество', 'Дата', 'Примечание'])
+    transactions = ComponentTransaction.objects.select_related('component', 'component__type', 'user')
     for t in transactions:
         writer.writerow([
             t.component.model,
+            t.component.type.name if t.component.type else '',
             f"{t.user.lastname} {t.user.firstname} {t.user.middlename or ''}",
             t.quantity,
             t.taken_at.strftime('%Y-%m-%d %H:%M'),
-            t.comment
+            t.comment or ''
         ])
     return response
 

@@ -144,6 +144,7 @@ class Offices(models.Model):
         verbose_name = 'Кабинет'
         verbose_name_plural = 'Кабинеты'
 
+
 class Categories(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
 
@@ -153,6 +154,7 @@ class Categories(models.Model):
     class Meta:
         verbose_name = 'Категория оборудования'
         verbose_name_plural = 'Категории оборудования'
+
 
 class Types(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
@@ -205,7 +207,6 @@ class ComponentTransaction(models.Model):
         verbose_name_plural = 'Транзакции комплектующих'
 
 
-# ---------- НОВЫЕ МОДЕЛИ ----------
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Кому')
     message = models.CharField(max_length=500, verbose_name='Текст уведомления')
@@ -221,6 +222,7 @@ class Notification(models.Model):
     def __str__(self):
         return self.message[:50]
 
+
 class Chat(models.Model):
     bid = models.OneToOneField(Bids, on_delete=models.CASCADE, verbose_name='Заявка')
     participants = models.ManyToManyField(User, verbose_name='Участники')
@@ -233,6 +235,7 @@ class Chat(models.Model):
         verbose_name = 'Чат'
         verbose_name_plural = 'Чаты'
 
+
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, verbose_name='Чат')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Отправитель')
@@ -243,6 +246,7 @@ class Message(models.Model):
         verbose_name = 'Сообщение'
         verbose_name_plural = 'Сообщения'
         ordering = ['created_at']
+
 
 class ChatParticipant(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='participations')

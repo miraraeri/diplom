@@ -2,7 +2,6 @@
 
 {% block content %}
 <div style="max-width: 600px; margin: 0 auto;">
-    <a href="{% url 'all_bids' %}" class="icon-btn" style="margin-bottom: 16px;">←</a>
     <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
         <h1>Новая заявка</h1>

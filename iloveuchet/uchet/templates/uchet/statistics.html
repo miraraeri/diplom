@@ -16,9 +16,6 @@
         </div>
     </div>
 
-    <!-- 1. Линейный график: принятые и завершённые за день -->
-
-
     <div class="charts-row">
         <div class="chart-container">
         <h3>Динамика принятых и завершённых заявок (последние 30 дней)</h3>
@@ -72,7 +69,6 @@
         {% endif %}
         </div>
 
-        <!-- 2. Круговая диаграмма по статусам -->
         <div class="chart-container">
             <h3>Мои заявки по статусам</h3>
             {% if my_status_stats.in_progress or my_status_stats.done %}
@@ -101,9 +97,6 @@
         </div>
     </div>
 
-
-
-    <!-- Отделы (уже был) -->
  <div class="stat-cards-wrapper" style="margin-top: 30px;">
     <div class="stat-card">
         <h3>Топ отделов (мои заявки)</h3>
@@ -127,8 +120,10 @@
         </ul>
     </div>
  </div>
+    <div class="sticky-export" style="margin-top: 30px;">
+        <a href="{% url 'export_bids_csv' %}" class="btn-primary">Экспорт моих заявок (CSV)</a>
+    </div>
 {% else %}
-    <!-- существующий код для администратора -->
     <div class="stat-cards-wrapper">
         <div class="stat-card">
             <div class="stat-number">{{ total_bids }}</div>
@@ -280,7 +275,6 @@
 
     <div class="sticky-export">
         <a href="{% url 'export_bids_csv' %}" class="btn-primary">Экспорт заявок (CSV)</a>
-        <a href="{% url 'export_transactions_csv' %}" class="btn-primary">Экспорт транзакций (CSV)</a>
     </div>
 {% endif %}
 {% endblock %}

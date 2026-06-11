@@ -99,7 +99,6 @@
 </div>
 
 <script>
-    // === ПОИСК ===
     (function() {
         const searchWrapper = document.querySelector('.search-wrapper');
         const searchInput = document.getElementById('search-input');
@@ -131,7 +130,6 @@
         });
     })();
 
-    // === ФИЛЬТРЫ ===
     let activeDropdown = null;
 
     document.querySelectorAll('.filter-icon').forEach(icon => {
@@ -172,7 +170,6 @@
         document.getElementById('filter-form').submit();
     };
 
-    // === МОДАЛЬНОЕ ОКНО ===
     const modal = document.getElementById('writeoff-modal');
     const writeoffForm = document.getElementById('writeoff-form');
 

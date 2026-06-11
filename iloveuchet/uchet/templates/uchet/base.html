@@ -92,7 +92,6 @@
     {% endif %}
 
     <script>
-        // Мобильное меню
         const menuToggle = document.getElementById('menuToggle');
         const navLinks = document.getElementById('navLinks');
         menuToggle.addEventListener('click', () => navLinks.classList.toggle('show'));
@@ -102,11 +101,9 @@
             }
         });
 
-        // Тень при прокрутке
         const siteHeader = document.getElementById('siteHeader');
         window.addEventListener('scroll', () => siteHeader.classList.toggle('scrolled', window.scrollY > 10));
 
-        // === Уведомления ===
         function loadNotifications() {
             fetch('/notifications/')
                 .then(res => res.json())
@@ -152,7 +149,6 @@
             }
         });
 
-        // === Чат: счётчик непрочитанных ===
         function updateChatBadge() {
             fetch('/chats/unread-count/')
                 .then(res => res.json())
@@ -168,7 +164,6 @@
                 .catch(err => console.error('Ошибка загрузки счётчика чата:', err));
         }
 
-        // Первичная загрузка и интервалы
         loadNotifications();
         updateChatBadge();
         setInterval(loadNotifications, 60000);

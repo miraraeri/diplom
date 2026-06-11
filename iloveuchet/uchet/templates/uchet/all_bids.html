@@ -102,7 +102,6 @@
 {% endif %}
 
 <script>
-    // === ПОИСК ===
     (function() {
         const searchWrapper = document.querySelector('.search-wrapper');
         const searchInput = document.getElementById('search-input');
@@ -134,12 +133,10 @@
         });
     })();
 
-    // === КЛИКАБЕЛЬНЫЕ СТРОКИ ===
     document.querySelectorAll('#bid-table tbody tr').forEach(row => {
         row.addEventListener('click', () => window.location.href = row.dataset.url);
     });
 
-    // === ФИЛЬТРЫ В ЗАГОЛОВКАХ ===
     let activeDropdown = null;
 
     document.querySelectorAll('.filter-icon').forEach(icon => {
@@ -157,7 +154,6 @@
         });
     });
 
-    // Закрытие по клику вне фильтра и самой иконки
     document.addEventListener('click', function(e) {
         if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest('.filter-icon')) {
             activeDropdown.classList.remove('show');
@@ -165,14 +161,12 @@
         }
     });
 
-    // Предотвращаем закрытие при клике внутри dropdown (например, на поле даты)
     document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
         dropdown.addEventListener('click', function(e) {
             e.stopPropagation();
         });
     });
 
-    // Функции установки фильтров
     window.setStatus = function(value) {
         document.getElementById('status-input').value = value;
         document.getElementById('filter-form').submit();
@@ -202,7 +196,6 @@
         applyUpdateFilter();
     };
 
-    // Заполнение полей дат из GET параметров
     (function() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('date_from')) document.getElementById('date-from').value = params.get('date_from');
