@@ -14,8 +14,18 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+
+import environ
+
+
 load_dotenv()
 
+env = environ.Env()
+
+# URL для обычной работы приложения
+DATABASE_URL = env.str('DATABASE_URL')
+# URL специально для миграций
+MIGRATIONS_URL = env.str('MIGRATIONS_URL', default=DATABASE_URL) # на всякий случай добавляем значение по умолчанию
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,21 +107,9 @@ DATABASES = {
     # },
     # 'supabase': dj_database_url.config(
     #     default=os.environ.get('DATABASE_URL'),
-    #     conn_max_age=600,
+    #     conn_max_age=0,
     #     ssl_require=True
     # )
-
-    # 'default': {
-    #         'ENGINE': 'django.db.backends.postgresql',
-    #         'NAME': 'postgres',
-    #         'USER': 'postgres',
-    #         'PASSWORD': 'passParolPostgre', # Замените на ваш пароль
-    #         'HOST': 'db.your-project-ref.supabase.co', # Замените на ваш хост
-    #         'PORT': '5432',
-    #         'OPTIONS': {
-    #             'sslmode': 'require',
-    #         },
-    #     }
 
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -125,6 +123,16 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
+    # 'default': dj_database_url.config(
+    #     default=os.environ.get('DATABASE_URL'),
+    #     conn_max_age=0,
+    #     ssl_require=True
+    #  ),
+    # 'migrate': dj_database_url.config(
+    #     default=os.environ.get('MIGRATIONS_URL'),
+    #     conn_max_age=0,
+    #     ssl_require=True
+    # ),
 }
 
 
