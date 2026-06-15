@@ -4,10 +4,13 @@ from .models import User, Bids, Components, Types, Devices, Categories, Offices,
 
 
 class BidsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'problem_text', 'employee_bid', 'status', 'time_create', 'time_update')
+    list_display = ('id', 'problem_text', 'employee_bid', 'status', 'time_create', 'time_update', 'accepted_by',
+                    'accepted_at', 'completed_by', 'completed_at')
     list_display_links = ('id', 'problem_text')
-    search_fields = ('problem_text', 'employee__lastname', 'employee__firstname', 'employee__middlename')
-    list_filter = ('status', 'time_create', 'time_update')
+    search_fields = ('problem_text', 'employee__lastname', 'employee__firstname', 'employee__middlename',
+                     'accepted_by__lastname', 'accepted_by__firstname', 'accepted_by__middlename',
+                     'completed_by__lastname', 'completed_by__firstname', 'completed_by__middlename')
+    list_filter = ('status', 'time_create', 'time_update', 'accepted_at', 'completed_at')
 
     def employee_bid(self, obj):
         return f"{obj.employee.lastname} {obj.employee.firstname} {obj.employee.middlename or ''}"
@@ -23,17 +26,9 @@ class ComponentsAdmin(admin.ModelAdmin):
 
 
 class TypesAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cat_type')
+    list_display = ('name',)
     list_display_links = ('name',)
     search_fields = ('name',)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('categories')
-
-    def cat_type(self, obj):
-        return ", ".join([c.name for c in obj.categories.all()])
-
-    cat_type.short_description = 'Категории оборудования'
 
 
 class DevicesAdmin(admin.ModelAdmin):
@@ -44,17 +39,9 @@ class DevicesAdmin(admin.ModelAdmin):
 
 
 class CategoriesAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type_cat')
+    list_display = ('name',)
     list_display_links = ('name',)
     search_fields = ('name',)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('types')
-
-    def type_cat(self, obj):
-        return ", ".join([t.name for t in obj.types.all()])
-
-    type_cat.short_description = 'Типы комплектующих'
 
 
 class OfficesAdmin(admin.ModelAdmin):
